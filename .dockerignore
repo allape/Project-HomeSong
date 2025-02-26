@@ -1,0 +1,7 @@
+database
+static
+
+ui/dist
+ui/node_modules
+
+.DS_Store

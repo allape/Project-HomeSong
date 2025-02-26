@@ -1,0 +1,32 @@
+name: homesong
+services:
+  app:
+    image: allape/homesong:latest
+    container_name: homesong
+    restart: unless-stopped
+    environment:
+      HOME_SONG_DATABASE_DSN: "root:GBlOn0VAmKmMtVGeMBzC@tcp(database:3306)/homesong?charset=utf8mb4&parseTime=True&loc=Local"
+    volumes:
+      - ./static:/app/static
+    networks:
+      - homesong
+      - internal
+    depends_on:
+      database:
+        condition: service_healthy
+  database:
+    image: mysql:8.3.0
+    restart: unless-stopped
+    networks:
+      - internal
+    healthcheck:
+      test: "curl http://127.0.0.1:3306 > /dev/null && exit 0 || exit 1"
+    environment:
+      - MYSQL_ROOT_PASSWORD=GBlOn0VAmKmMtVGeMBzC
+      - MYSQL_DATABASE=homesong
+    volumes:
+      - ./database:/var/lib/mysql
+networks:
+  homesong:
+  internal:
+    internal: true

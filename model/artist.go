@@ -1,0 +1,9 @@
+package model
+
+import "github.com/allape/gocrud"
+
+type Artist struct {
+	gocrud.Base
+	Name     string `json:"name"`
+	Portrait string `json:"portrait"`
+}
