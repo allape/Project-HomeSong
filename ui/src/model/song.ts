@@ -7,6 +7,7 @@ export interface ISong extends IBase {
   digest: string;
   mime: string;
   ffprobeInfo: string;
+  description: string;
 }
 
 export interface ISongSearchParams extends IBaseSearchParams {

@@ -16,6 +16,7 @@ export interface ICollection extends IBase {
 
 export interface ICollectionSearchParams extends IBaseSearchParams {
   in_id?: ICollection["id"][];
+  in_type?: ICollection["type"][];
   keywords?: string;
 }
 

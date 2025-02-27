@@ -17,6 +17,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"keywords": gocrud.KeywordLike("keywords", nil),
 			"in_id":    gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
+			"in_type":  gocrud.KeywordIn("typs", nil),
 			"deleted":  gocrud.NewSoftDeleteSearchHandler(""),
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Collection](gocrud.RestCoder),
@@ -31,9 +32,12 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 
 	collectionSongGroup := group.Group("/song")
 	err = gocrud.New(collectionSongGroup, db, gocrud.Crud[model.CollectionSong]{
-		DisableDelete: true,
+		EnableGetAll:  true,
+		DisablePage:   true,
+		DisableCount:  true,
 		DisableSave:   true,
 		DisableGetOne: true,
+		DisableDelete: true,
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"in_songId":       gocrud.KeywordIDIn("song_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
 			"in_collectionId": gocrud.KeywordIDIn("collection_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),

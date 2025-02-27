@@ -137,6 +137,7 @@ export default function ICollectionCrudyButton(
       <Form.Item name="description" label={t("collection.description")}>
         <Input.TextArea
           maxLength={20000}
+          rows={10}
           placeholder={t("collection.description")}
         />
       </Form.Item>

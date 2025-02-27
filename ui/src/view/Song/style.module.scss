@@ -2,4 +2,19 @@
   .avatar {
     cursor: pointer;
   }
+
+  .mobile {
+    display: none;
+  }
+
+  & {
+    @media screen and (max-width: 600px) {
+      .windowed {
+        display: none;
+      }
+      .mobile {
+        display: block;
+      }
+    }
+  }
 }

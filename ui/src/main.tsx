@@ -22,6 +22,7 @@ i18n
           cover: "封面",
           ffprobeInfo: "FFProbe 信息",
           mime: "MIME",
+          description: "描述",
         },
         collection: {
           _: "收藏",
@@ -35,6 +36,9 @@ i18n
             album: "专辑",
             playlist: "歌单",
           },
+        },
+        player: {
+          name: "播放器",
         },
       },
     },
@@ -54,6 +58,7 @@ i18n
           cover: "Cover",
           ffprobeInfo: "FFProbe Info",
           mime: "MIME",
+          description: "Description",
         },
         collection: {
           _: "Collection",
@@ -67,6 +72,9 @@ i18n
             album: "Album",
             playlist: "Playlist",
           },
+        },
+        player: {
+          name: "Music Player",
         },
       },
     },

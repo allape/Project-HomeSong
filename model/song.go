@@ -12,4 +12,5 @@ type Song struct {
 	Digest      string `json:"digest"`
 	MIME        string `json:"mime"`
 	FFProbeInfo string `json:"ffprobeInfo"`
+	Description string `json:"description"`
 }

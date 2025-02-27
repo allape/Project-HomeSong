@@ -6,14 +6,16 @@ import {
   searchable,
   Uploader,
 } from "@allape/gocrud-react";
-import { PictureOutlined } from "@ant-design/icons";
+import { MoreOutlined, PictureOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Button,
   Divider,
+  Dropdown,
   Form,
   FormInstance,
   Input,
+  MenuProps,
   TableColumnsType,
 } from "antd";
 import {
@@ -27,19 +29,17 @@ import {
 import { useTranslation } from "react-i18next";
 import NewCrudyButtonEventEmitter from "../../../../../gocrud-react/src/component/CrudyButton/eventemitter.ts";
 import { EllipsisCell } from "../../../../../gocrud-react/src/helper/antd.tsx";
+import { saveCollectionSongsBySong } from "../../api/collection.ts";
 import {
-  CollectionCrudy,
-  CollectionSongCrudy,
-  saveCollectionSongsBySong,
-} from "../../api/collection.ts";
-import { SongCrudy, upload } from "../../api/song.ts";
+  fillSongsWithCollections,
+  ISongWithCollections,
+  SongCrudy,
+  upload,
+} from "../../api/song.ts";
 import ICollectionCrudyButton from "../../component/CollectionCrudyButton";
+import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
-import {
-  ICollection,
-  ICollectionSearchParams,
-  ICollectionSongSearchParams,
-} from "../../model/collection.ts";
+import { ICollection } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
 
@@ -47,7 +47,7 @@ type ISearchParams = ISongSearchParams;
 
 interface IRecord extends ISong {
   _file?: File;
-  _collections?: ICollection["id"][];
+  _collectionIds?: ICollection["id"][];
   _collectionNames?: ICollection["name"][];
 }
 
@@ -60,10 +60,15 @@ export default function Song(): ReactElement {
   );
 
   const fileRef = useRef<File | undefined>();
+
   const [searchParams, setSearchParams] = useState<ISearchParams>(() => ({
     ...BaseSearchParams,
   }));
   const [form, setForm] = useState<FormInstance<IRecord> | undefined>();
+  const [playerVisible, setPlayerVisible] = useState<boolean>(false);
+  const [songForPlay, setSongForPlay] = useState<
+    ISongWithCollections | undefined
+  >();
 
   const columns = useMemo<TableColumnsType<IRecord>>(
     () => [
@@ -97,10 +102,16 @@ export default function Song(): ReactElement {
         title: t("song.name"),
         dataIndex: "name",
         render: (v, record) => {
-          const url = `${config.SERVER_STATIC_URL}${record.filename}`;
           return (
             <div>
-              <Button type="link" size="small" onClick={() => window.open(url)}>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => {
+                  setPlayerVisible(true);
+                  setSongForPlay(record as ISongWithCollections);
+                }}
+              >
                 {record._collectionNames?.length
                   ? `${record._collectionNames.join(" | ")} - `
                   : ""}
@@ -139,47 +150,12 @@ export default function Song(): ReactElement {
 
   const handleAfterListed = useCallback(
     async (records: IRecord[]): Promise<IRecord[]> => {
-      if (records.length === 0) {
-        return records;
-      }
-
-      const songIds = Array.from(new Set(records.map((record) => record.id)));
-      const collectionSongs =
-        await CollectionSongCrudy.page<ICollectionSongSearchParams>(
-          1,
-          songIds.length,
-          {
-            in_songId: songIds,
-          },
-        );
-
-      const collectionIds = Array.from(
-        new Set(collectionSongs.map((cs) => cs.collectionId)),
-      );
-
-      let collections: ICollection[] = [];
-      if (collectionIds.length > 0) {
-        collections = await CollectionCrudy.page<ICollectionSearchParams>(
-          1,
-          collectionIds.length,
-          {
-            in_id: collectionIds,
-          },
-        );
-      }
-
-      return records.map((record) => {
-        const aIds = collectionSongs
-          .filter((cs) => cs.songId === record.id)
-          .map((cs) => cs.collectionId);
-        return {
-          ...record,
-          _collections: aIds,
-          _collectionNames: collections
-            .filter((a) => aIds.includes(a.id))
-            .map((a) => a.name),
-        };
-      });
+      const swcs = await fillSongsWithCollections(records);
+      return swcs.map<IRecord>((s) => ({
+        ...s,
+        _collectionIds: s._collections.map((c) => c.id),
+        _collectionNames: s._collections.map((c) => c.name),
+      }));
     },
     [],
   );
@@ -189,7 +165,7 @@ export default function Song(): ReactElement {
 
     fileRef.current = undefined;
 
-    await saveCollectionSongsBySong(song.id, record._collections || []);
+    await saveCollectionSongsBySong(song.id, record._collectionIds || []);
 
     return song;
   }, []);
@@ -209,69 +185,120 @@ export default function Song(): ReactElement {
     [form],
   );
 
+  const menus = useMemo<MenuProps["items"]>(
+    () => [
+      {
+        key: "Collection",
+        label: t("collection._"),
+        onClick: () => {
+          CollectionCrudyEmitter.dispatchEvent("open");
+        },
+      },
+      {
+        key: "Player",
+        label: t("player.name"),
+        onClick: () => {
+          setPlayerVisible(true);
+        },
+      },
+    ],
+    [CollectionCrudyEmitter, t],
+  );
+
   return (
-    <CrudyTable<IRecord>
-      className={styles.wrapper}
-      name={t("song._")}
-      crudy={SongCrudy}
-      columns={columns}
-      searchParams={searchParams}
-      afterListed={handleAfterListed}
-      onSave={handleSave}
-      onFormInit={setForm}
-      titleExtra={
-        <>
-          <Divider type="vertical" />
-          <ICollectionCrudyButton emitter={CollectionCrudyEmitter} />
-        </>
-      }
-    >
-      {(record) => (
-        <>
-          <Form.Item name="filename" noStyle hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item name="digest" noStyle hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item name="mime" noStyle hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item name="ffprobeInfo" noStyle hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="_file"
-            label={t("song._")}
-            rules={[{ required: !record?.id }]}
-          >
-            <Input
-              type="file"
-              accept="audio/*,video/*"
-              onChange={handleFileChange}
-            />
-          </Form.Item>
-          <Form.Item name="cover" label={t("song.cover")}>
-            <Uploader serverURL={config.SERVER_STATIC_URL} />
-          </Form.Item>
-          <Form.Item
-            name="name"
-            label={t("song.name")}
-            rules={[{ required: true }]}
-          >
-            <Input maxLength={200} placeholder={t("song.name")} />
-          </Form.Item>
-          <Form.Item name="_collections" label={t("collection._")}>
-            <CollectionSelector mode="multiple">
-              <Button
-                onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
-              >
-                {t("gocrud.manage")}
+    <>
+      <CrudyTable<IRecord>
+        className={styles.wrapper}
+        name={t("song._")}
+        crudy={SongCrudy}
+        columns={columns}
+        searchParams={searchParams}
+        afterListed={handleAfterListed}
+        onSave={handleSave}
+        onFormInit={setForm}
+        titleExtra={
+          <>
+            <div className={styles.windowed}>
+              <Divider type="vertical" />
+              <ICollectionCrudyButton emitter={CollectionCrudyEmitter} />
+              <Divider type="vertical" />
+              <Button type="primary" onClick={() => setPlayerVisible(true)}>
+                {t("player.name")}
               </Button>
-            </CollectionSelector>
-          </Form.Item>
-        </>
+            </div>
+            <div className={styles.mobile}>
+              <Dropdown menu={{ items: menus }}>
+                <Button>
+                  <MoreOutlined />
+                </Button>
+              </Dropdown>
+            </div>
+          </>
+        }
+      >
+        {(record) => (
+          <>
+            <Form.Item name="filename" noStyle hidden>
+              <Input />
+            </Form.Item>
+            <Form.Item name="digest" noStyle hidden>
+              <Input />
+            </Form.Item>
+            <Form.Item name="mime" noStyle hidden>
+              <Input />
+            </Form.Item>
+            <Form.Item name="ffprobeInfo" noStyle hidden>
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="_file"
+              label={t("song._")}
+              rules={[{ required: !record?.id }]}
+            >
+              <Input
+                type="file"
+                accept="audio/*,video/*"
+                onChange={handleFileChange}
+              />
+            </Form.Item>
+            <Form.Item name="cover" label={t("song.cover")}>
+              <Uploader serverURL={config.SERVER_STATIC_URL} />
+            </Form.Item>
+            <Form.Item
+              name="name"
+              label={t("song.name")}
+              rules={[{ required: true }]}
+            >
+              <Input maxLength={200} placeholder={t("song.name")} />
+            </Form.Item>
+            <Form.Item name="_collectionIds" label={t("collection._")}>
+              <CollectionSelector mode="multiple">
+                <Button
+                  onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
+                >
+                  {t("gocrud.manage")}
+                </Button>
+              </CollectionSelector>
+            </Form.Item>
+            <Form.Item name="description" label={t("song.description")}>
+              <Input.TextArea
+                rows={10}
+                maxLength={20000}
+                placeholder={t("song.description")}
+              />
+            </Form.Item>
+          </>
+        )}
+      </CrudyTable>
+      {playerVisible && (
+        <CollectionPlayer
+          song={songForPlay}
+          onClose={() => {
+            setPlayerVisible(false);
+            setSongForPlay(undefined);
+          }}
+        />
       )}
-    </CrudyTable>
+    </>
   );
 }

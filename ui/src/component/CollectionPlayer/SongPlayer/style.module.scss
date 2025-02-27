@@ -1,0 +1,42 @@
+.wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 20px 0;
+
+  & {
+    @media screen and (max-width: 600px) {
+      .windowed {
+        display: none;
+      }
+    }
+  }
+
+  .audio {
+    flex: 1;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: stretch;
+    align-items: stretch;
+  }
+
+  .button {
+    padding: 20px;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.6;
+    transition: 0.25s;
+
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      scale: 2;
+    }
+
+    & > :global(.anticon) {
+      scale: 2;
+    }
+  }
+}
