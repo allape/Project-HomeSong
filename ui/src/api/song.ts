@@ -1,11 +1,7 @@
 import Crudy, { aapi, config } from "@allape/gocrud-react";
-import { ISong, ISongArtist } from "../model/song.ts";
+import { ISong } from "../model/song.ts";
 
 export const SongCrudy = new Crudy<ISong>(`${config.SERVER_URL}/song`);
-
-export const SongArtistCrudy = new Crudy<ISongArtist>(
-  `${config.SERVER_URL}/song/artist`,
-);
 
 export function upload(song: Partial<ISong>, file?: File): Promise<ISong> {
   const form = new FormData();
@@ -17,16 +13,4 @@ export function upload(song: Partial<ISong>, file?: File): Promise<ISong> {
     method: "PUT",
     body: form,
   });
-}
-
-export function saveSongArtists(
-  songId: number,
-  artistId: number[],
-): Promise<ISongArtist[]> {
-  return aapi.get(
-    `${config.SERVER_URL}/song/artist/save/${songId}?artistIds=${encodeURIComponent(artistId.join(","))}`,
-    {
-      method: "PUT",
-    },
-  );
 }

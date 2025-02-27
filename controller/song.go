@@ -24,10 +24,12 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"like_name": gocrud.KeywordLike("name", nil),
 			"in_id":     gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"artistId":  gocrud.KeywordEqual("artist_id", nil),
 			"deleted":   gocrud.NewSoftDeleteSearchHandler(""),
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Song](gocrud.RestCoder),
+		WillSave: func(record *model.Song, context *gin.Context, db *gorm.DB) {
+			record.Name = strings.TrimSpace(record.Name)
+		},
 	})
 	if err != nil {
 		return err
@@ -131,68 +133,6 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		}
 
 		context.JSON(http.StatusOK, gocrud.R[model.Song]{Code: gocrud.RestCoder.OK(), Data: song})
-	})
-
-	songArtistGroup := group.Group("/artist")
-	err = gocrud.New(songArtistGroup, db, gocrud.Crud[model.SongArtist]{
-		DisableDelete: true,
-		DisableSave:   true,
-		DisableGetOne: true,
-		SearchHandlers: map[string]gocrud.SearchHandler{
-			"in_songId":   gocrud.KeywordIDIn("song_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"in_artistId": gocrud.KeywordIDIn("artist_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	// ?artistIds=
-	songArtistGroup.PUT("/save/:songId", func(context *gin.Context) {
-		songId := gocrud.Pick[gocrud.ID](gocrud.IDsFromCommaSplitString(context.Param("songId")), 0, 0)
-		if songId == 0 {
-			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "songId not found")
-			return
-		}
-
-		artistIds := gocrud.IDsFromCommaSplitString(context.Query("artistIds"))
-
-		var song model.Song
-		if err := db.Model(&song).First(&song, songId).Error; err != nil {
-			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
-			return
-		}
-
-		var artists []model.Artist
-
-		if len(artistIds) > 0 {
-			if err := db.Model(&artists).Where("id IN ?", artistIds).Find(&artists).Error; err != nil {
-				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
-				return
-			}
-		}
-
-		if err := db.Model(&model.SongArtist{}).Where("song_id = ?", song.ID).Delete(&model.SongArtist{}).Error; err != nil {
-			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
-			return
-		}
-
-		songArtists := make([]model.SongArtist, len(artists))
-		if len(artists) > 0 {
-			for i, artist := range artists {
-				songArtists[i] = model.SongArtist{
-					SongID:   song.ID,
-					ArtistID: artist.ID,
-				}
-			}
-
-			if err := db.Model(&model.SongArtist{}).Save(&songArtists).Error; err != nil {
-				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
-				return
-			}
-		}
-
-		context.JSON(http.StatusOK, gocrud.R[[]model.SongArtist]{Code: gocrud.RestCoder.OK(), Data: songArtists})
 	})
 
 	return nil

@@ -36,8 +36,8 @@ func main() {
 
 	err = db.AutoMigrate(
 		&model.Song{},
-		&model.Artist{},
-		&model.SongArtist{},
+		&model.Collection{},
+		&model.CollectionSong{},
 	)
 	if err != nil {
 		l.Error().Fatalf("Failed to auto migrate database: %v", err)
@@ -56,9 +56,9 @@ func main() {
 		l.Error().Fatalf("Failed to setup song controller: %v", err)
 	}
 
-	err = controller.SetupArtistController(apiGrp.Group("/artist"), db)
+	err = controller.SetupCollectionController(apiGrp.Group("/collection"), db)
 	if err != nil {
-		l.Error().Fatalf("Failed to setup artist controller: %v", err)
+		l.Error().Fatalf("Failed to setup collection controller: %v", err)
 	}
 
 	err = gocrud.NewSingleHTMLServe(engine.Group("/ui"), env.UIFolder, &gocrud.SingleHTMLServeConfig{

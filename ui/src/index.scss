@@ -2,3 +2,10 @@ body {
   margin: 0;
   padding: 0;
 }
+
+html {
+  background-color: #aaa;
+  @media (prefers-color-scheme: dark) {
+    background-color: #333;
+  }
+}

@@ -11,6 +11,7 @@ i18n
         ...i18n.ZHCN,
 
         id: "ID",
+        unknown: "未知",
         select: "选择",
         createdAt: "创建时间",
         updatedAt: "更新时间",
@@ -22,11 +23,18 @@ i18n
           ffprobeInfo: "FFProbe 信息",
           mime: "MIME",
         },
-        artist: {
-          _: "艺术家",
+        collection: {
+          _: "收藏",
           name: "名称",
-          nameRoman: "拼音",
-          portrait: "头像",
+          type: "类型",
+          description: "描述",
+          keywords: "关键词",
+          cover: "封面",
+          types: {
+            artist: "艺术家",
+            album: "专辑",
+            playlist: "歌单",
+          },
         },
       },
     },
@@ -35,6 +43,7 @@ i18n
         ...i18n.EN,
 
         id: "ID",
+        unknown: "Unknown",
         select: "Select",
         createdAt: "Created At",
         updatedAt: "Updated At",
@@ -46,11 +55,18 @@ i18n
           ffprobeInfo: "FFProbe Info",
           mime: "MIME",
         },
-        artist: {
-          _: "Artist",
+        collection: {
+          _: "Collection",
           name: "Name",
-          nameRoman: "Roman Name",
-          portrait: "Portrait",
+          type: "Type",
+          description: "Description",
+          keywords: "Keywords",
+          cover: "Cover",
+          types: {
+            artist: "Artist",
+            album: "Album",
+            playlist: "Playlist",
+          },
         },
       },
     },

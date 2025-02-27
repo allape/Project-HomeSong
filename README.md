@@ -1,6 +1,8 @@
 # Home Song
 
-Song Management for Home NAS
+Song Management for Home NAS.  
+And the default UI is not designed for "to client" usage, more ERP style. 
+Client usages should be integrated with some authentication system.
 
 ### Dev
 

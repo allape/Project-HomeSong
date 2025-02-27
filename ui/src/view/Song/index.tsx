@@ -1,5 +1,11 @@
 import { BaseSearchParams } from "@allape/gocrud";
-import { config, CrudyTable, searchable, Uploader } from "@allape/gocrud-react";
+import {
+  asDefaultPattern,
+  config,
+  CrudyTable,
+  searchable,
+  Uploader,
+} from "@allape/gocrud-react";
 import { PictureOutlined } from "@ant-design/icons";
 import {
   Avatar,
@@ -21,36 +27,35 @@ import {
 import { useTranslation } from "react-i18next";
 import NewCrudyButtonEventEmitter from "../../../../../gocrud-react/src/component/CrudyButton/eventemitter.ts";
 import { EllipsisCell } from "../../../../../gocrud-react/src/helper/antd.tsx";
-import { ArtistCrudy } from "../../api/artist.ts";
 import {
-  saveSongArtists,
-  SongArtistCrudy,
-  SongCrudy,
-  upload,
-} from "../../api/song.ts";
-import ArtistCrudyButton from "../../component/ArtistCrudyButton";
-import ArtistSelector from "../../component/ArtistSelector";
-import { IArtist, IArtistSearchParams } from "../../model/artist.ts";
+  CollectionCrudy,
+  CollectionSongCrudy,
+  saveCollectionSongsBySong,
+} from "../../api/collection.ts";
+import { SongCrudy, upload } from "../../api/song.ts";
+import ICollectionCrudyButton from "../../component/CollectionCrudyButton";
+import CollectionSelector from "../../component/CollectionSelector";
 import {
-  ISong,
-  ISongArtistSearchParams,
-  ISongSearchParams,
-} from "../../model/song.ts";
+  ICollection,
+  ICollectionSearchParams,
+  ICollectionSongSearchParams,
+} from "../../model/collection.ts";
+import { ISong, ISongSearchParams } from "../../model/song.ts";
+import styles from "./style.module.scss";
 
 type ISearchParams = ISongSearchParams;
 
 interface IRecord extends ISong {
   _file?: File;
-  _collections?: string[];
-  _artists?: IArtist["id"][];
-  _artistNames?: IArtist["name"][];
+  _collections?: ICollection["id"][];
+  _collectionNames?: ICollection["name"][];
 }
 
 export default function Song(): ReactElement {
   const { t } = useTranslation();
 
-  const ArtistCrudyEmitter = useMemo(
-    () => NewCrudyButtonEventEmitter<IArtist>(),
+  const CollectionCrudyEmitter = useMemo(
+    () => NewCrudyButtonEventEmitter<ICollection>(),
     [],
   );
 
@@ -73,7 +78,12 @@ export default function Song(): ReactElement {
         render: (v) => {
           const url = `${config.SERVER_STATIC_URL}${v}`;
           return v ? (
-            <Avatar size={64} src={url} onClick={() => window.open(url)} />
+            <Avatar
+              className={styles.avatar}
+              size={64}
+              src={url}
+              onClick={() => window.open(url)}
+            />
           ) : (
             <Avatar size={64} icon={<PictureOutlined />} />
           );
@@ -91,8 +101,8 @@ export default function Song(): ReactElement {
           return (
             <div>
               <Button type="link" size="small" onClick={() => window.open(url)}>
-                {record._artistNames?.length
-                  ? `${record._artistNames.join(" | ")} - `
+                {record._collectionNames?.length
+                  ? `${record._collectionNames.join(" | ")} - `
                   : ""}
                 {v}
               </Button>
@@ -116,10 +126,12 @@ export default function Song(): ReactElement {
       {
         title: t("createdAt"),
         dataIndex: "createdAt",
+        render: asDefaultPattern,
       },
       {
         title: t("updatedAt"),
         dataIndex: "updatedAt",
+        render: asDefaultPattern,
       },
     ],
     [searchParams, t],
@@ -132,37 +144,38 @@ export default function Song(): ReactElement {
       }
 
       const songIds = Array.from(new Set(records.map((record) => record.id)));
-      const songArtists = await SongArtistCrudy.page<ISongArtistSearchParams>(
-        1,
-        songIds.length,
-        {
-          in_songId: songIds,
-        },
-      );
-
-      const artistIds = Array.from(
-        new Set(songArtists.map((songArtist) => songArtist.artistId)),
-      );
-
-      let artists: IArtist[] = [];
-      if (artistIds.length > 0) {
-        artists = await ArtistCrudy.page<IArtistSearchParams>(
+      const collectionSongs =
+        await CollectionSongCrudy.page<ICollectionSongSearchParams>(
           1,
-          artistIds.length,
+          songIds.length,
           {
-            in_id: artistIds,
+            in_songId: songIds,
+          },
+        );
+
+      const collectionIds = Array.from(
+        new Set(collectionSongs.map((cs) => cs.collectionId)),
+      );
+
+      let collections: ICollection[] = [];
+      if (collectionIds.length > 0) {
+        collections = await CollectionCrudy.page<ICollectionSearchParams>(
+          1,
+          collectionIds.length,
+          {
+            in_id: collectionIds,
           },
         );
       }
 
       return records.map((record) => {
-        const aIds = songArtists
-          .filter((songArtist) => songArtist.songId === record.id)
-          .map((songArtist) => songArtist.artistId);
+        const aIds = collectionSongs
+          .filter((cs) => cs.songId === record.id)
+          .map((cs) => cs.collectionId);
         return {
           ...record,
-          _artists: aIds,
-          _artistNames: artists
+          _collections: aIds,
+          _collectionNames: collections
             .filter((a) => aIds.includes(a.id))
             .map((a) => a.name),
         };
@@ -176,7 +189,7 @@ export default function Song(): ReactElement {
 
     fileRef.current = undefined;
 
-    await saveSongArtists(song.id, record._artists || []);
+    await saveCollectionSongsBySong(song.id, record._collections || []);
 
     return song;
   }, []);
@@ -198,6 +211,7 @@ export default function Song(): ReactElement {
 
   return (
     <CrudyTable<IRecord>
+      className={styles.wrapper}
       name={t("song._")}
       crudy={SongCrudy}
       columns={columns}
@@ -208,7 +222,7 @@ export default function Song(): ReactElement {
       titleExtra={
         <>
           <Divider type="vertical" />
-          <ArtistCrudyButton emitter={ArtistCrudyEmitter} />
+          <ICollectionCrudyButton emitter={CollectionCrudyEmitter} />
         </>
       }
     >
@@ -247,12 +261,14 @@ export default function Song(): ReactElement {
           >
             <Input maxLength={200} placeholder={t("song.name")} />
           </Form.Item>
-          <Form.Item name="_artists" label={t("artist._")}>
-            <ArtistSelector mode="multiple">
-              <Button onClick={() => ArtistCrudyEmitter.dispatchEvent("open")}>
+          <Form.Item name="_collections" label={t("collection._")}>
+            <CollectionSelector mode="multiple">
+              <Button
+                onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
+              >
                 {t("gocrud.manage")}
               </Button>
-            </ArtistSelector>
+            </CollectionSelector>
           </Form.Item>
         </>
       )}
