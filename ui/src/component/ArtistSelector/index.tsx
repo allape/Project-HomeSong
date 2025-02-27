@@ -1,7 +1,7 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import { CrudySelector } from "@allape/gocrud-react";
 import { ICrudySelectorProps } from "@allape/gocrud-react/src/component/CrudySelector";
-import { ReactElement } from "react";
+import { PropsWithChildren, ReactElement } from 'react';
 import { useTranslation } from "react-i18next";
 import { ArtistCrudy } from "../../api/artist.ts";
 import { IArtist } from "../../model/artist.ts";
@@ -9,7 +9,7 @@ import { IArtist } from "../../model/artist.ts";
 export type IArtistSelectorProps = Partial<ICrudySelectorProps<IArtist>>;
 
 export default function ArtistSelector(
-  props: IArtistSelectorProps,
+  props: PropsWithChildren<IArtistSelectorProps>,
 ): ReactElement {
   const { t } = useTranslation();
   return (

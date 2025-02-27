@@ -7,8 +7,6 @@ import (
 	"github.com/allape/homesong/controller"
 	"github.com/allape/homesong/env"
 	"github.com/allape/homesong/model"
-	"github.com/allape/homesong/system"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -36,7 +34,11 @@ func main() {
 		l.Error().Fatalf("Failed to open database: %v", err)
 	}
 
-	err = db.AutoMigrate(&model.Song{}, &model.Artist{})
+	err = db.AutoMigrate(
+		&model.Song{},
+		&model.Artist{},
+		&model.SongArtist{},
+	)
 	if err != nil {
 		l.Error().Fatalf("Failed to auto migrate database: %v", err)
 	}
@@ -44,7 +46,7 @@ func main() {
 	engine := gin.Default()
 
 	if env.EnableCors {
-		engine.Use(cors.Default())
+		engine.Use(gocrud.NewCors())
 	}
 
 	apiGrp := engine.Group("/api")
@@ -69,6 +71,7 @@ func main() {
 	err = gocrud.NewHttpFileSystem(engine.Group("/static"), env.StaticFolder, &gocrud.HttpFileSystemConfig{
 		AllowOverwrite: false,
 		AllowUpload:    true,
+		EnableDigest:   true,
 	})
 
 	engine.GET("/", func(context *gin.Context) {
@@ -85,5 +88,5 @@ func main() {
 		}
 	}()
 
-	system.Wait4CtrlC()
+	gogger.New("ctrl-c").Info().Println("Exiting with", gocrud.Wait4CtrlC())
 }

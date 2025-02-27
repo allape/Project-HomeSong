@@ -8,6 +8,7 @@ import (
 type Song struct {
 	gocrud.Base
 	Name        string `json:"name"`
+	Filename    string `json:"filename"`
 	Cover       string `json:"cover"`
 	Digest      string `json:"digest"`
 	MIME        string `json:"mime"`

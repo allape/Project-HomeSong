@@ -3,6 +3,7 @@
 
 .DS_Store
 
-/static
 /database
+/static
+/testdata
 /vendor

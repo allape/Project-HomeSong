@@ -13,45 +13,6 @@ function getLocale(): Locale | undefined {
   return undefined;
 }
 
-i18n
-  .setup({
-    zh: {
-      translation: {
-        ...i18n.ZHCN,
-
-        select: "选择",
-
-        song: {
-          _: "歌曲",
-          name: "歌曲名称",
-        },
-        artist: {
-          _: "艺术家",
-          name: "名称",
-          portrait: "头像",
-        },
-      },
-    },
-    en: {
-      translation: {
-        ...i18n.EN,
-
-        select: "Select",
-
-        song: {
-          _: "Song",
-          name: "Name",
-        },
-        artist: {
-          _: "Artist",
-          name: "Name",
-          portrait: "Portrait",
-        },
-      },
-    },
-  })
-  .then();
-
 export default function App(): ReactElement {
   return (
     <ThemeProvider locale={getLocale()}>

@@ -3,6 +3,7 @@ import { IArtist } from "./artist.ts";
 
 export interface ISong extends IBase {
   name: string;
+  filename: string;
   cover: string;
   digest: string;
   mime: string;

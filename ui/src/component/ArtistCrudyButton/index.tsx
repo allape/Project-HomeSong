@@ -1,3 +1,4 @@
+import { BaseSearchParams } from "@allape/gocrud";
 import {
   config,
   CrudyButton,
@@ -22,7 +23,9 @@ export default function ArtistCrudyButton(
 ): ReactElement {
   const { t } = useTranslation();
 
-  const [searchParams, setSearchParams] = useState<ISearchParams>({});
+  const [searchParams, setSearchParams] = useState<ISearchParams>(() => ({
+    ...BaseSearchParams,
+  }));
 
   const columns = useMemo<TableColumnsType<IRecord>>(
     () => [
@@ -31,7 +34,7 @@ export default function ArtistCrudyButton(
         dataIndex: "id",
       },
       {
-        title: t("portrait"),
+        title: t("artist.portrait"),
         dataIndex: "portrait",
         width: 100,
         render: (v) =>
@@ -44,7 +47,13 @@ export default function ArtistCrudyButton(
       {
         title: t("artist.name"),
         dataIndex: "name",
-        filtered: !!searchParams["like_name"],
+        render: (v, r) => (
+          <div>
+            <div>{v}</div>
+            <div>{r.nameRoman}</div>
+          </div>
+        ),
+        filtered: !!searchParams["keyword"],
         ...searchable(t("artist.name"), (value) =>
           setSearchParams((old) => ({
             ...old,
@@ -61,6 +70,7 @@ export default function ArtistCrudyButton(
       name={t("artist._")}
       columns={columns}
       crudy={ArtistCrudy}
+      searchParams={searchParams}
       {...props}
     >
       <Form.Item name="portrait" label={t("artist.portrait")}>
@@ -72,6 +82,9 @@ export default function ArtistCrudyButton(
         rules={[{ required: true }]}
       >
         <Input maxLength={200} placeholder={t("artist.name")} />
+      </Form.Item>
+      <Form.Item name="nameRoman" label={t("artist.nameRoman")}>
+        <Input maxLength={200} placeholder={t("artist.nameRoman")} />
       </Form.Item>
     </CrudyButton>
   );
