@@ -33,6 +33,8 @@ COPY --from=builder /build/app app
 
 EXPOSE 8080
 
+RUN apk add --no-cache ffmpeg
+
 CMD [ "/app/app" ]
 
 ### build ###

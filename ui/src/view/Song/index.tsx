@@ -1,11 +1,13 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
+  ahelper,
   asDefaultPattern,
   config,
   CrudyTable,
   searchable,
   Uploader,
 } from "@allape/gocrud-react";
+import NewCrudyButtonEventEmitter from "@allape/gocrud-react/src/component/CrudyButton/eventemitter.ts";
 import { MoreOutlined, PictureOutlined } from "@ant-design/icons";
 import {
   Avatar,
@@ -27,8 +29,6 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import NewCrudyButtonEventEmitter from "../../../../../gocrud-react/src/component/CrudyButton/eventemitter.ts";
-import { EllipsisCell } from "../../../../../gocrud-react/src/helper/antd.tsx";
 import { saveCollectionSongsBySong } from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
@@ -36,7 +36,7 @@ import {
   SongCrudy,
   upload,
 } from "../../api/song.ts";
-import ICollectionCrudyButton from "../../component/CollectionCrudyButton";
+import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import { ICollection } from "../../model/collection.ts";
@@ -132,7 +132,7 @@ export default function Song(): ReactElement {
       {
         title: t("song.ffprobeInfo"),
         dataIndex: "ffprobeInfo",
-        render: (v) => EllipsisCell()(v),
+        render: (v) => ahelper.EllipsisCell()(v),
       },
       {
         title: t("createdAt"),
@@ -220,7 +220,7 @@ export default function Song(): ReactElement {
           <>
             <div className={styles.windowed}>
               <Divider type="vertical" />
-              <ICollectionCrudyButton emitter={CollectionCrudyEmitter} />
+              <CollectionCrudyButton emitter={CollectionCrudyEmitter} />
               <Divider type="vertical" />
               <Button type="primary" onClick={() => setPlayerVisible(true)}>
                 {t("player.name")}

@@ -1,5 +1,6 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
+  ahelper,
   asDefaultPattern,
   config,
   CrudyButton,
@@ -11,7 +12,6 @@ import { PictureOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Form, Input, Select, TableColumnsType, Tag } from "antd";
 import { ReactElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { EllipsisCell } from "../../../../../gocrud-react/src/helper/antd.tsx";
 import { CollectionCrudy } from "../../api/collection.ts";
 import {
   ICollection,
@@ -24,7 +24,7 @@ type ISearchParams = ICollectionSearchParams;
 
 export type ICollectionCrudyButtonProps = Partial<ICrudyButtonProps<IRecord>>;
 
-export default function ICollectionCrudyButton(
+export default function CollectionCrudyButton(
   props: ICollectionCrudyButtonProps,
 ): ReactElement {
   const { t } = useTranslation();
@@ -90,7 +90,7 @@ export default function ICollectionCrudyButton(
       {
         title: t("collection.description"),
         dataIndex: "description",
-        render: (v) => EllipsisCell()(v),
+        render: (v) => ahelper.EllipsisCell()(v),
       },
       {
         title: t("createdAt"),
