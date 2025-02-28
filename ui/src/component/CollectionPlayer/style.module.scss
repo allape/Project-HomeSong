@@ -25,11 +25,12 @@
   & > :global(.ant-card-head) {
     border-bottom: 0;
   }
+
   & > :global(.ant-card-body) {
     padding: 0 10px 10px;
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: calc(100vh - 56px);
+    max-height: calc(100vh - 60px);
   }
 
   @include mobile.Mobile;
@@ -38,6 +39,7 @@
     .button {
       transition: 0.25s;
       scale: 2;
+
       &:active {
         scale: 2.2;
       }
@@ -95,6 +97,11 @@
           &:hover {
             background-color: #333;
           }
+        }
+
+        .name {
+          white-space: pre-wrap;
+          word-break: break-all;
         }
       }
     }

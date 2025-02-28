@@ -10,7 +10,7 @@ import {
   ShrinkOutlined,
   StepForwardOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Card, List } from "antd";
+import { Avatar, Button, Card, List, Tooltip } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -21,7 +21,10 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { CollectionSongCrudy } from "../../api/collection.ts";
+import {
+  CollectionSongCrudy,
+  getRandomSongInCollection,
+} from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
   ISongWithCollections,
@@ -64,8 +67,8 @@ export default function CollectionPlayer({
   const { loading, execute } = useLoading();
 
   const { x, y, onMouseDown } = useDragger({
-    x: 100,
-    y: 60,
+    x: 600,
+    y: 6,
     xOffset: -500,
     yOffset: -200,
   });
@@ -78,13 +81,16 @@ export default function CollectionPlayer({
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [atTop, setAtTop] = useState<boolean>(true);
 
-  const [collection, setCollection] = useState<ICollection["id"] | undefined>();
+  const [collection, collectionRef, setCollection] = useProxy<
+    ICollection["id"] | undefined
+  >(undefined);
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
 
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
   );
   const [playing, setPlaying] = useState<boolean>(false);
+  const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
 
   const handleNextPage = useCallback(async () => {
     await execute(async () => {
@@ -137,15 +143,34 @@ export default function CollectionPlayer({
           })
         ).map((cs) => cs.songId);
         currentRef.current = 1;
+        setCollection(id);
       });
 
       await handleNextPage();
     },
-    [execute, handleNextPage, setSongs],
+    [execute, handleNextPage, setCollection, setSongs],
   );
 
   const handleChangeSong = useCallback(
     (delta: number) => {
+      if (shuffleRef.current) {
+        execute(async () => {
+          const song = await getRandomSongInCollection(
+            collectionRef.current || 0,
+          );
+          let index = songsRef.current.findIndex((s) => s.id === song.id);
+          if (songRef.current?.id === song.id) {
+            index += 1;
+            if (index >= songsRef.current.length) {
+              index = 0;
+            }
+          }
+          const nextSong = songsRef.current[index];
+          setSong(nextSong);
+        }).then();
+        return;
+      }
+
       if (!songRef.current) {
         setSong(songsRef.current[0]);
         return;
@@ -167,7 +192,7 @@ export default function CollectionPlayer({
         setSong(songsRef.current[next]);
       }
     },
-    [setSong, songRef, songsRef],
+    [collectionRef, execute, setSong, shuffleRef, songRef, songsRef],
   );
 
   const handlePrev = useCallback(() => {
@@ -177,6 +202,10 @@ export default function CollectionPlayer({
   const handleNext = useCallback(() => {
     handleChangeSong(1);
   }, [handleChangeSong]);
+
+  const handleShuffle = useCallback(() => {
+    setShuffle((v) => !v);
+  }, [setShuffle]);
 
   return (
     <Card
@@ -190,62 +219,75 @@ export default function CollectionPlayer({
         >
           {song ? song._name : t("player.name")}
           {song && (
-            <Button
-              className={cls(
-                styles.button,
-                collapsed ? undefined : styles.mobile,
-              )}
-              type="link"
-              onClick={() =>
-                PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
-              }
-            >
-              {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
-            </Button>
+            <Tooltip title={playing ? t("player.pause") : t("player.prev")}>
+              <Button
+                className={cls(
+                  styles.button,
+                  collapsed ? undefined : styles.mobile,
+                )}
+                type="link"
+                danger={playing}
+                onClick={() =>
+                  PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
+                }
+              >
+                {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
+              </Button>
+            </Tooltip>
           )}
           {song ? (
-            <Button
-              className={cls(
-                styles.button,
-                collapsed ? undefined : styles.mobile,
-              )}
-              type="link"
-              onClick={handleNext}
-            >
-              <StepForwardOutlined />
-            </Button>
+            <Tooltip title={t("player.next")}>
+              <Button
+                className={cls(
+                  styles.button,
+                  collapsed ? undefined : styles.mobile,
+                )}
+                type="link"
+                onClick={handleNext}
+              >
+                <StepForwardOutlined />
+              </Button>
+            </Tooltip>
           ) : undefined}
         </Flex>
       }
       extra={
         <>
-          <Button type="link" danger onClick={onClose}>
-            <CloseOutlined />
-          </Button>
+          <Tooltip title={t("player.close")}>
+            <Button type="link" danger onClick={onClose}>
+              <CloseOutlined />
+            </Button>
+          </Tooltip>
           {collapsed ? (
-            <Button
-              className={styles.windowed}
-              type="link"
-              onClick={() => setCollapsed(false)}
-            >
-              <ExpandAltOutlined />
-            </Button>
+            <Tooltip title={t("player.expand")}>
+              <Button
+                className={styles.windowed}
+                type="link"
+                onClick={() => setCollapsed(false)}
+              >
+                <ExpandAltOutlined />
+              </Button>
+            </Tooltip>
           ) : (
+            <Tooltip title={t("player.collapse")}>
+              <Button
+                className={styles.windowed}
+                type="link"
+                onClick={() => setCollapsed(true)}
+              >
+                <ShrinkOutlined />
+              </Button>
+            </Tooltip>
+          )}
+          <Tooltip title={t("player.move")}>
             <Button
               className={styles.windowed}
               type="link"
-              onClick={() => setCollapsed(true)}
+              onMouseDown={onMouseDown}
             >
-              <ShrinkOutlined />
+              <DragOutlined />
             </Button>
-          )}
-          <Button
-            className={styles.windowed}
-            type="link"
-            onMouseDown={onMouseDown}
-          >
-            <DragOutlined />
-          </Button>
+          </Tooltip>
         </>
       }
     >
@@ -264,11 +306,13 @@ export default function CollectionPlayer({
           ></CollectionSelector>
           <SongPlayer
             shadow={!atTop}
+            shuffle={shuffle}
             song={song}
             emitter={PlayerEventEmitter}
             onChange={setPlaying}
             onNext={handleNext}
             onPrev={handlePrev}
+            onShuffle={handleShuffle}
           />
         </div>
         <div className={styles.list}>
@@ -294,8 +338,8 @@ export default function CollectionPlayer({
                       icon={item._cover ? undefined : <PictureOutlined />}
                     />
                   }
-                  title={item._name}
-                  description={`${item._nonartistName || '---'} - ${item.mime}`}
+                  title={<div className={styles.name}>{item._name}</div>}
+                  description={item._nonartistName || "-"}
                 />
               </List.Item>
             )}

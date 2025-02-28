@@ -1,12 +1,12 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
-  AntdEllipsisCell,
   asDefaultPattern,
   config,
   CrudyButton,
+  Ellipsis,
   searchable,
   Uploader,
-} from '@allape/gocrud-react';
+} from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
 import { PictureOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Form, Input, InputNumber, Select, TableColumnsType, Tag } from 'antd';
@@ -90,7 +90,7 @@ export default function CollectionCrudyButton(
       {
         title: t("collection.description"),
         dataIndex: "description",
-        render: (v) => AntdEllipsisCell()(v),
+        render: (v) => <Ellipsis>{v}</Ellipsis>,
       },
       {
         title: t("createdAt"),

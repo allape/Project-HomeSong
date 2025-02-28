@@ -50,6 +50,29 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		return err
 	}
 
+	group.GET("/random/:collectionId", func(context *gin.Context) {
+		collectionId := gocrud.Pick(gocrud.IDsFromCommaSplitString(context.Param("collectionId")), 0, 0)
+		if collectionId == 0 {
+			var collection model.Collection
+			if err := db.Model(&collection).Order("rand()").First(&collection).Error; err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				return
+			}
+			collectionId = collection.ID
+		}
+
+		var song model.Song
+		if err := db.Model(&song).Where(
+			"id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id = ?)",
+			collectionId,
+		).Order("rand() DESC").First(&song).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		context.JSON(http.StatusOK, gocrud.R[model.Song]{Code: gocrud.RestCoder.OK(), Data: song})
+	})
+
 	collectionSongGroup := group.Group("/song")
 	err = gocrud.New(collectionSongGroup, db, gocrud.Crud[model.CollectionSong]{
 		EnableGetAll:  true,

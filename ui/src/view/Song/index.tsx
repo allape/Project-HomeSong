@@ -1,9 +1,9 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
-  AntdEllipsisCell,
   asDefaultPattern,
   config,
   CrudyTable,
+  Ellipsis,
   ICrudyTableProps,
   searchable,
   Uploader,
@@ -46,9 +46,12 @@ import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import WordInput from "../../component/WordInput";
+import useSafeHeight from "../../hook/useSafeHeight.ts";
 import { ICollection } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
+
+const SafeY = 56 + 10 * 2 + 55 + 32 + 16 * 2 + 2 + 10 * 2;
 
 type ISearchParams = ISongSearchParams;
 
@@ -74,6 +77,8 @@ export default function Song(): ReactElement {
     () => NewCrudyButtonEventEmitter<ICollection>(),
     [],
   );
+
+  const y = useSafeHeight(SafeY);
 
   const fileRef = useRef<File | undefined>();
 
@@ -112,28 +117,27 @@ export default function Song(): ReactElement {
         },
       },
       {
-        title: t("song.mime"),
-        dataIndex: "mime",
+        title: t("collection._"),
+        dataIndex: "_nonartistName",
+        width: 200,
+        render: (v) => <Ellipsis>{v}</Ellipsis>,
       },
       {
         title: t("song.name"),
         dataIndex: "name",
         render: (v, record) => {
           return (
-            <div>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => {
-                  setPlayerVisible(true);
-                  setSongForPlay(record as ISongWithCollections);
-                }}
-              >
-                {record._artistName ? `${record._artistName} - ` : ""}
-                {AntdEllipsisCell(50)(v)}
-              </Button>
-              <div style={{ paddingLeft: "7px" }}>{record._nonartistName}</div>
-            </div>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                setPlayerVisible(true);
+                setSongForPlay(record as ISongWithCollections);
+              }}
+            >
+              {record._artistName ? `${record._artistName} - ` : ""}
+              <Ellipsis length={100}>{v}</Ellipsis>
+            </Button>
           );
         },
         filtered: !!searchParams["like_name"],
@@ -145,9 +149,13 @@ export default function Song(): ReactElement {
         ),
       },
       {
+        title: t("song.mime"),
+        dataIndex: "mime",
+      },
+      {
         title: t("song.ffprobeInfo"),
         dataIndex: "ffprobeInfo",
-        render: (v) => AntdEllipsisCell()(v),
+        render: (v) => <Ellipsis>{v}</Ellipsis>,
       },
       {
         title: t("createdAt"),
@@ -258,6 +266,7 @@ export default function Song(): ReactElement {
         onSave={handleSave}
         afterSaved={handleAfterSaved}
         onFormInit={setForm}
+        scroll={{ y, x: true }}
         titleExtra={
           <>
             <div className={styles.windowed}>

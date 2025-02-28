@@ -1,4 +1,9 @@
-import { StepBackwardOutlined, StepForwardOutlined } from "@ant-design/icons";
+import {
+  FireOutlined,
+  StepBackwardOutlined,
+  StepForwardOutlined,
+} from "@ant-design/icons";
+import { Button, Tooltip } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -7,27 +12,34 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { IModifiedSong } from "../model.ts";
 import SongPlayEventEmitter from "./eventemitter.ts";
 import styles from "./style.module.scss";
 
 export interface ISongPlayerProps {
   shadow?: boolean;
+  shuffle?: boolean;
   song?: IModifiedSong;
   emitter?: SongPlayEventEmitter;
   onNext?: () => void;
   onPrev?: () => void;
+  onShuffle?: () => void;
   onChange?: (playing: boolean) => void;
 }
 
 export default function SongPlayer({
   shadow,
+  shuffle,
   song,
   emitter,
   onPrev,
   onNext,
+  onShuffle,
   onChange,
 }: ISongPlayerProps): ReactElement {
+  const { t } = useTranslation();
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -58,8 +70,8 @@ export default function SongPlayer({
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
     navigator.mediaSession.setActionHandler("stop", handleStop);
-    navigator.mediaSession.setActionHandler("previoustrack", handleNext);
-    navigator.mediaSession.setActionHandler("nexttrack", handlePrev);
+    navigator.mediaSession.setActionHandler("previoustrack", handlePrev);
+    navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("seekto", handleSeekTo);
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
@@ -160,9 +172,6 @@ export default function SongPlayer({
   return (
     <div className={cls(styles.wrapper, shadow && styles.shadow)}>
       <div className={styles.row}>
-        <div className={cls(styles.button, styles.windowed)} onClick={onPrev}>
-          <StepBackwardOutlined />
-        </div>
         <div className={styles.audio}>
           <audio
             autoPlay
@@ -176,17 +185,33 @@ export default function SongPlayer({
             onTimeUpdate={handleChange}
           />
         </div>
-        <div className={cls(styles.button, styles.windowed)} onClick={onNext}>
-          <StepForwardOutlined />
-        </div>
       </div>
       <div className={styles.row}>
-        <div className={cls(styles.button, styles.mobile)} onClick={onPrev}>
-          <StepBackwardOutlined />
-        </div>
-        <div className={cls(styles.button, styles.mobile)} onClick={onNext}>
-          <StepForwardOutlined />
-        </div>
+        <Tooltip title={t("player.prev")}>
+          <Button
+            type="link"
+            size="large"
+            className={cls(styles.button)}
+            onClick={onPrev}
+          >
+            <StepBackwardOutlined />
+          </Button>
+        </Tooltip>
+        <Tooltip title={t("player.shuffle")}>
+          <Button
+            type="link"
+            danger={shuffle}
+            className={cls(styles.button)}
+            onClick={onShuffle}
+          >
+            <FireOutlined />
+          </Button>
+        </Tooltip>
+        <Tooltip title={t("player.next")}>
+          <Button type="link" className={cls(styles.button)} onClick={onNext}>
+            <StepForwardOutlined />
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

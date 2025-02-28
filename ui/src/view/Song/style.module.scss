@@ -18,6 +18,9 @@
       background-color: #333;
     }
   }
+  & > :global(.ant-card-body) {
+    padding: 10px;
+  }
 
   .avatar {
     cursor: pointer;
