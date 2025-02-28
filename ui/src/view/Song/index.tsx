@@ -96,6 +96,7 @@ export default function Song(): ReactElement {
     () => [
       {
         title: t("id"),
+        width: 50,
         dataIndex: "id",
       },
       {
@@ -121,6 +122,18 @@ export default function Song(): ReactElement {
         dataIndex: "_nonartistName",
         width: 200,
         render: (v) => <Ellipsis>{v}</Ellipsis>,
+        filtered: !!searchParams["like_name"],
+        ...searchable<IRecord, ICollection["id"]>(
+          t("song.name"),
+          (value) =>
+            setSearchParams((old) => ({
+              ...old,
+              collectionId: value,
+            })),
+          (value, onChange) => (
+            <CollectionSelector value={value} onChange={onChange} />
+          ),
+        ),
       },
       {
         title: t("song.name"),
@@ -269,8 +282,8 @@ export default function Song(): ReactElement {
         scroll={{ y, x: true }}
         titleExtra={
           <>
+            <Divider type="vertical" />
             <div className={styles.windowed}>
-              <Divider type="vertical" />
               <CollectionCrudyButton emitter={CollectionCrudyEmitter} />
               <Divider type="vertical" />
               <Button type="primary" onClick={() => setPlayerVisible(true)}>

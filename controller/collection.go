@@ -22,7 +22,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 				return db
 			},
 			"in_id":             gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"in_type":           gocrud.KeywordIn("typs", nil),
+			"in_type":           gocrud.KeywordIn("type", nil),
 			"deleted":           gocrud.NewSoftDeleteSearchHandler(""),
 			"orderBy_index":     gocrud.SortBy("index"),
 			"orderBy_createdAt": gocrud.SortBy("created_at"),

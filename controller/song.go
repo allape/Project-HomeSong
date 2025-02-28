@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -24,10 +25,20 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"like_name":         gocrud.KeywordLike("name", nil),
 			"in_id":             gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"deleted":           gocrud.NewSoftDeleteSearchHandler(""),
+			"deleted":           gocrud.NewSoftDeleteSearchHandler("songs"),
 			"orderBy_index":     gocrud.SortBy("index"),
 			"orderBy_createdAt": gocrud.SortBy("created_at"),
 			"orderBy_updatedAt": gocrud.SortBy("updated_at"),
+			"collectionId": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
+				if ok, value := gocrud.ValuableArray(values); ok {
+					id := gocrud.Pick(gocrud.IDsFromCommaSplitString(value), 0, 0)
+					if id == 0 {
+						return db
+					}
+					return db.Where("id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id = ?)", id)
+				}
+				return db
+			},
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Song](gocrud.RestCoder),
 		WillSave: func(record *model.Song, context *gin.Context, db *gorm.DB) {

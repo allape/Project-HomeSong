@@ -9,7 +9,15 @@ import {
 } from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
 import { PictureOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Form, Input, InputNumber, Select, TableColumnsType, Tag } from 'antd';
+import {
+  Avatar,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  TableColumnsType,
+  Tag,
+} from "antd";
 import { ReactElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CollectionCrudy } from "../../api/collection.ts";
@@ -33,6 +41,8 @@ export default function CollectionCrudyButton(
 
   const [searchParams, setSearchParams] = useState<ISearchParams>(() => ({
     ...BaseSearchParams,
+    orderBy_updatedAt: "desc",
+    orderBy_index: "desc",
   }));
 
   const columns = useMemo<TableColumnsType<IRecord>>(
@@ -48,6 +58,23 @@ export default function CollectionCrudyButton(
           const found = types.find((t) => t.value === v);
           return <Tag color={found?.color}>{found?.label || t("unknown")}</Tag>;
         },
+        filtered: !!searchParams["in_type"],
+        ...searchable<IRecord, IRecord["type"]>(
+          t("collection.type"),
+          (value) =>
+            setSearchParams((old) => ({
+              ...old,
+              in_type: value ? [value] : undefined,
+            })),
+          (value, onChange) => (
+            <Select
+              options={types}
+              value={value}
+              onChange={onChange}
+              placeholder={t("collection.type")}
+            />
+          ),
+        ),
       },
       {
         title: t("collection.cover"),
