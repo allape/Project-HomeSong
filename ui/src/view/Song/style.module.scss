@@ -1,20 +1,27 @@
+@use "../../style/mobile";
+
 .wrapper {
+  @media screen and (max-width: mobile.$max-width) {
+    border-radius: 0;
+    &.playerVisible {
+      display: none;
+    }
+  }
+
+  & > :global(.ant-card-head) {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background-color: white;
+    @media (prefers-color-scheme: dark) {
+      background-color: #333;
+    }
+  }
+
   .avatar {
     cursor: pointer;
   }
 
-  .mobile {
-    display: none;
-  }
-
-  & {
-    @media screen and (max-width: 600px) {
-      .windowed {
-        display: none;
-      }
-      .mobile {
-        display: block;
-      }
-    }
-  }
+  @include mobile.Mobile;
 }

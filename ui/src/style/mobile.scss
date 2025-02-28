@@ -1,0 +1,15 @@
+$max-width: 600px;
+
+@mixin Mobile {
+  .mobile {
+    display: none;
+  }
+  @media screen and (max-width: $max-width) {
+    .windowed {
+      display: none;
+    }
+    .mobile {
+      display: block;
+    }
+  }
+}

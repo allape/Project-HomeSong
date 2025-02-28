@@ -17,14 +17,15 @@ import (
 
 func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 	err := gocrud.New(group, db, gocrud.Crud[model.Song]{
-		DisallowAnyPageSize: true,
-		DisableSave:         true,
-		DefaultPageSize:     DefaultPageSize,
-		PageSizes:           PageSizes,
+		DisableSave:     true,
+		DefaultPageSize: DefaultPageSize,
 		SearchHandlers: map[string]gocrud.SearchHandler{
-			"like_name": gocrud.KeywordLike("name", nil),
-			"in_id":     gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"deleted":   gocrud.NewSoftDeleteSearchHandler(""),
+			"like_name":         gocrud.KeywordLike("name", nil),
+			"in_id":             gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
+			"deleted":           gocrud.NewSoftDeleteSearchHandler(""),
+			"orderBy_index":     gocrud.SortBy("index"),
+			"orderBy_createdAt": gocrud.SortBy("created_at"),
+			"orderBy_updatedAt": gocrud.SortBy("updated_at"),
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Song](gocrud.RestCoder),
 		WillSave: func(record *model.Song, context *gin.Context, db *gorm.DB) {

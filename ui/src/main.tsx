@@ -15,6 +15,8 @@ i18n
         select: "选择",
         createdAt: "创建时间",
         updatedAt: "更新时间",
+        continuesUpload: "持续性上传",
+        keepCover: "保留封面",
 
         song: {
           _: "歌曲",
@@ -53,6 +55,8 @@ i18n
         select: "Select",
         createdAt: "Created At",
         updatedAt: "Updated At",
+        continuesUpload: "Continues Upload",
+        keepCover: "Keep Cover",
 
         song: {
           _: "Song",

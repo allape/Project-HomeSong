@@ -1,15 +1,25 @@
-import { config } from "@allape/gocrud-react";
+import { config, Flex } from "@allape/gocrud-react";
 import { useLoading, useProxy } from "@allape/use-loading";
 import {
   CloseOutlined,
   DragOutlined,
   ExpandAltOutlined,
+  PauseCircleFilled,
   PictureOutlined,
+  PlayCircleOutlined,
   ShrinkOutlined,
+  StepForwardOutlined,
 } from "@ant-design/icons";
 import { Avatar, Button, Card, List } from "antd";
 import cls from "classnames";
-import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { CollectionSongCrudy } from "../../api/collection.ts";
 import {
@@ -26,6 +36,7 @@ import { ISong, ISongSearchParams } from "../../model/song.ts";
 import CollectionSelector from "../CollectionSelector";
 import { IModifiedSong } from "./model.ts";
 import SongPlayer from "./SongPlayer";
+import SongPlayEventEmitter from "./SongPlayer/eventemitter.ts";
 import styles from "./style.module.scss";
 
 type PageNumber = number;
@@ -48,6 +59,10 @@ function modifySong(s: ISongWithCollections): IModifiedSong {
             .join(", ")
         : ""
     } - ${s.name}`,
+    _collectionName: s._collections
+      .filter((c) => c.type !== "artist")
+      .map((c) => c.name)
+      .join(", "),
   };
 }
 
@@ -60,14 +75,19 @@ export default function CollectionPlayer({
   const { loading, execute } = useLoading();
 
   const { x, y, onMouseDown } = useDragger({
+    x: 100,
+    y: 60,
     xOffset: -500,
     yOffset: -200,
   });
+
+  const PlayerEventEmitter = useMemo(() => new SongPlayEventEmitter(), []);
 
   const collectionSongsRef = useRef<ISong["id"][]>([]);
   const currentRef = useRef<PageNumber>(1);
 
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [atTop, setAtTop] = useState<boolean>(true);
 
   const [collection, setCollection] = useState<ICollection["id"] | undefined>();
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
@@ -136,8 +156,10 @@ export default function CollectionPlayer({
   const handleChangeSong = useCallback(
     (delta: number) => {
       if (!songRef.current) {
+        setSong(songsRef.current[0]);
         return;
       }
+
       const current = songsRef.current.findIndex(
         (s) => s.id === songRef.current!.id,
       );
@@ -169,7 +191,41 @@ export default function CollectionPlayer({
     <Card
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
       style={{ left: `${x}px`, top: `${y}px` }}
-      title={playing ? song?._name : t("player.name")}
+      title={
+        <Flex
+          className={styles.title}
+          justifyContent="flex-start"
+          alignItems="center"
+        >
+          {song ? song._name : t("player.name")}
+          {song && (
+            <Button
+              className={cls(
+                styles.button,
+                collapsed ? undefined : styles.mobile,
+              )}
+              type="link"
+              onClick={() =>
+                PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
+              }
+            >
+              {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
+            </Button>
+          )}
+          {song ? (
+            <Button
+              className={cls(
+                styles.button,
+                collapsed ? undefined : styles.mobile,
+              )}
+              type="link"
+              onClick={handleNext}
+            >
+              <StepForwardOutlined />
+            </Button>
+          ) : undefined}
+        </Flex>
+      }
       extra={
         <>
           <Button type="link" danger onClick={onClose}>
@@ -202,7 +258,12 @@ export default function CollectionPlayer({
         </>
       }
     >
-      <div className={styles.player}>
+      <div
+        className={styles.player}
+        onWheel={(e) =>
+          setAtTop(e.currentTarget.parentElement?.scrollTop === 0)
+        }
+      >
         <div className={styles.header}>
           <CollectionSelector
             loading={loading}
@@ -211,7 +272,9 @@ export default function CollectionPlayer({
             allowClear
           ></CollectionSelector>
           <SongPlayer
+            shadow={!atTop}
             song={song}
+            emitter={PlayerEventEmitter}
             onChange={setPlaying}
             onNext={handleNext}
             onPrev={handlePrev}
@@ -233,19 +296,15 @@ export default function CollectionPlayer({
               >
                 <List.Item.Meta
                   avatar={
-                    item._cover ? (
-                      <Avatar
-                        className={styles.avatar}
-                        size={64}
-                        src={item._cover}
-                        onClick={() => window.open(item._cover)}
-                      />
-                    ) : (
-                      <Avatar size={64} icon={<PictureOutlined />} />
-                    )
+                    <Avatar
+                      className={styles.avatar}
+                      size={64}
+                      src={item._cover}
+                      icon={item._cover ? undefined : <PictureOutlined />}
+                    />
                   }
                   title={item._name}
-                  description={item.mime || item.description}
+                  description={item._collectionName || item.mime}
                 />
               </List.Item>
             )}

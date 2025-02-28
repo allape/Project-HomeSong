@@ -8,17 +8,22 @@ import {
   useRef,
 } from "react";
 import { IModifiedSong } from "../model.ts";
+import SongPlayEventEmitter from "./eventemitter.ts";
 import styles from "./style.module.scss";
 
 export interface ISongPlayerProps {
+  shadow?: boolean;
   song?: IModifiedSong;
+  emitter?: SongPlayEventEmitter;
   onNext?: () => void;
   onPrev?: () => void;
   onChange?: (playing: boolean) => void;
 }
 
 export default function SongPlayer({
+  shadow,
   song,
+  emitter,
   onPrev,
   onNext,
   onChange,
@@ -125,26 +130,63 @@ export default function SongPlayer({
     });
   }, []);
 
+  useEffect(() => {
+    if (!emitter) {
+      return;
+    }
+
+    const handlePlay = () => {
+      audioRef.current?.play().then();
+    };
+    const handlePause = () => {
+      audioRef.current?.pause();
+    };
+    const handleStop = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+    emitter.addEventListener("play", handlePlay);
+    emitter.addEventListener("pause", handlePause);
+    emitter.addEventListener("stop", handleStop);
+    return () => {
+      emitter.removeEventListener("play", handlePlay);
+      emitter.removeEventListener("pause", handlePause);
+      emitter.removeEventListener("stop", handleStop);
+    };
+  }, [emitter]);
+
   return (
-    <div className={styles.wrapper}>
-      <div className={cls(styles.button, styles.windowed)} onClick={onPrev}>
-        <StepBackwardOutlined />
+    <div className={cls(styles.wrapper, shadow && styles.shadow)}>
+      <div className={styles.row}>
+        <div className={cls(styles.button, styles.windowed)} onClick={onPrev}>
+          <StepBackwardOutlined />
+        </div>
+        <div className={styles.audio}>
+          <audio
+            autoPlay
+            controls
+            ref={audioRef}
+            src={song?._url}
+            className={styles.audio}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onEnded={handleEnded}
+            onTimeUpdate={handleChange}
+          />
+        </div>
+        <div className={cls(styles.button, styles.windowed)} onClick={onNext}>
+          <StepForwardOutlined />
+        </div>
       </div>
-      <div className={styles.audio}>
-        <audio
-          autoPlay
-          controls
-          ref={audioRef}
-          src={song?._url}
-          className={styles.audio}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          onEnded={handleEnded}
-          onTimeUpdate={handleChange}
-        />
-      </div>
-      <div className={cls(styles.button, styles.windowed)} onClick={onNext}>
-        <StepForwardOutlined />
+      <div className={styles.row}>
+        <div className={cls(styles.button, styles.mobile)} onClick={onPrev}>
+          <StepBackwardOutlined />
+        </div>
+        <div className={cls(styles.button, styles.mobile)} onClick={onNext}>
+          <StepForwardOutlined />
+        </div>
       </div>
     </div>
   );

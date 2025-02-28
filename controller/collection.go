@@ -1,24 +1,32 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/allape/gocrud"
 	"github.com/allape/homesong/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 	err := gocrud.New(group, db, gocrud.Crud[model.Collection]{
-		DisallowAnyPageSize: true,
-		DefaultPageSize:     DefaultPageSize,
-		PageSizes:           PageSizes,
 		SearchHandlers: map[string]gocrud.SearchHandler{
-			"keywords": gocrud.KeywordLike("keywords", nil),
-			"in_id":    gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
-			"in_type":  gocrud.KeywordIn("typs", nil),
-			"deleted":  gocrud.NewSoftDeleteSearchHandler(""),
+			"keywords": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
+				if ok, value := gocrud.ValuableArray(values); ok {
+					likeValue := fmt.Sprintf("%%%s%%", strings.TrimSpace(value))
+					return db.Where("keywords LIKE ? OR name LIKE ? OR id = ?", likeValue, likeValue, value)
+				}
+				return db
+			},
+			"in_id":             gocrud.KeywordIDIn("id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
+			"in_type":           gocrud.KeywordIn("typs", nil),
+			"deleted":           gocrud.NewSoftDeleteSearchHandler(""),
+			"orderBy_index":     gocrud.SortBy("index"),
+			"orderBy_createdAt": gocrud.SortBy("created_at"),
+			"orderBy_updatedAt": gocrud.SortBy("updated_at"),
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Collection](gocrud.RestCoder),
 		WillSave: func(record *model.Collection, context *gin.Context, db *gorm.DB) {

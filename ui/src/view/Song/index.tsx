@@ -4,6 +4,7 @@ import {
   asDefaultPattern,
   config,
   CrudyTable,
+  ICrudyTableProps,
   searchable,
   Uploader,
 } from "@allape/gocrud-react";
@@ -12,6 +13,7 @@ import { MoreOutlined, PictureOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Button,
+  Col,
   Divider,
   Dropdown,
   Form,
@@ -19,8 +21,11 @@ import {
   Input,
   InputNumber,
   MenuProps,
+  Row,
+  Switch,
   TableColumnsType,
 } from "antd";
+import cls from "classnames";
 import {
   ChangeEvent,
   ReactElement,
@@ -40,6 +45,7 @@ import {
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
+import WordInput from "../../component/WordInput";
 import { ICollection } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
@@ -47,6 +53,9 @@ import styles from "./style.module.scss";
 type ISearchParams = ISongSearchParams;
 
 interface IRecord extends ISong {
+  _continuesUpload?: boolean;
+  _keepCover?: boolean;
+
   _file?: File;
   _collectionIds?: ICollection["id"][];
   _collectionNames?: ICollection["name"][];
@@ -64,6 +73,7 @@ export default function Song(): ReactElement {
 
   const [searchParams, setSearchParams] = useState<ISearchParams>(() => ({
     ...BaseSearchParams,
+    orderBy_updatedAt: "desc",
   }));
   const [form, setForm] = useState<FormInstance<IRecord> | undefined>();
   const [playerVisible, setPlayerVisible] = useState<boolean>(false);
@@ -118,7 +128,9 @@ export default function Song(): ReactElement {
                   : ""}
                 {v}
               </Button>
-              <div style={{ paddingLeft: "7px" }}>{record.digest}</div>
+              <div style={{ paddingLeft: "7px" }}>
+                {AntdEllipsisCell(100)(record.description)}
+              </div>
             </div>
           );
         },
@@ -206,16 +218,34 @@ export default function Song(): ReactElement {
     [CollectionCrudyEmitter, t],
   );
 
+  const handleAfterSaved = useCallback<
+    Exclude<ICrudyTableProps<IRecord>["afterSaved"], undefined>
+  >((record, form): boolean => {
+    if (!record._continuesUpload) {
+      return true;
+    }
+
+    form.resetFields();
+    form.setFieldsValue({
+      _continuesUpload: true,
+      _keepCover: record._keepCover,
+      cover: record._keepCover ? record.cover : undefined,
+    });
+
+    return false;
+  }, []);
+
   return (
     <>
       <CrudyTable<IRecord>
-        className={styles.wrapper}
+        className={cls(styles.wrapper, playerVisible && styles.playerVisible)}
         name={t("song._")}
         crudy={SongCrudy}
         columns={columns}
         searchParams={searchParams}
         afterListed={handleAfterListed}
         onSave={handleSave}
+        afterSaved={handleAfterSaved}
         onFormInit={setForm}
         titleExtra={
           <>
@@ -239,6 +269,28 @@ export default function Song(): ReactElement {
       >
         {(record) => (
           <>
+            <Row gutter={10}>
+              <Col span={12}>
+                <Form.Item
+                  name="_continuesUpload"
+                  valuePropName="checked"
+                  label={t("continuesUpload")}
+                  layout="horizontal"
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="_keepCover"
+                  valuePropName="checked"
+                  label={t("keepCover")}
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Divider plain />
             <Form.Item name="filename" noStyle hidden>
               <Input />
             </Form.Item>
@@ -279,7 +331,7 @@ export default function Song(): ReactElement {
               label={t("song.name")}
               rules={[{ required: true }]}
             >
-              <Input maxLength={200} placeholder={t("song.name")} />
+              <WordInput maxLength={200} placeholder={t("song.name")} />
             </Form.Item>
             <Form.Item name="_collectionIds" label={t("collection._")}>
               <CollectionSelector mode="multiple">

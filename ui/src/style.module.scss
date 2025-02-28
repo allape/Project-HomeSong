@@ -1,5 +1,11 @@
+@use "style/mobile";
+
 .wrapper {
   padding: 10px;
   max-width: 1800px;
   margin: 0 auto;
+
+  @media screen and (max-width: mobile.$max-width) {
+    padding: 0;
+  }
 }

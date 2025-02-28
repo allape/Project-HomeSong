@@ -1,42 +1,49 @@
-.wrapper {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-evenly;
-  align-items: center;
-  padding: 20px 0;
+@use "../../../style/mobile";
 
-  & {
-    @media screen and (max-width: 600px) {
-      .windowed {
-        display: none;
-      }
-    }
+.wrapper {
+  padding: 5px 10px;
+  box-shadow: none;
+  margin: 0 -10px;
+  transition: 0.25s;
+
+  &.shadow {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
-  .audio {
-    flex: 1;
+  .row {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: stretch;
-    align-items: stretch;
-  }
+    justify-content: space-evenly;
+    align-items: center;
 
-  .button {
-    padding: 20px;
-    cursor: pointer;
-    user-select: none;
-    opacity: 0.6;
-    transition: 0.25s;
+    @include mobile.Mobile;
 
-    &:hover {
-      opacity: 1;
-    }
-    &:active {
-      scale: 2;
+    .audio {
+      flex: 1;
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: stretch;
+      align-items: stretch;
     }
 
-    & > :global(.anticon) {
-      scale: 2;
+    .button {
+      padding: 20px;
+      cursor: pointer;
+      user-select: none;
+      opacity: 0.6;
+      transition: 0.25s;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      &:active {
+        scale: 2;
+      }
+
+      & > :global(.anticon) {
+        scale: 2;
+      }
     }
   }
 }
