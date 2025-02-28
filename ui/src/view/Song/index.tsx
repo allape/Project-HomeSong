@@ -220,16 +220,20 @@ export default function Song(): ReactElement {
 
   const handleAfterSaved = useCallback<
     Exclude<ICrudyTableProps<IRecord>["afterSaved"], undefined>
-  >((record, form): boolean => {
-    if (!record._continuesUpload) {
+  >((_, form): boolean => {
+    const value = form.getFieldsValue();
+
+    if (!value._continuesUpload) {
       return true;
     }
 
     form.resetFields();
     form.setFieldsValue({
       _continuesUpload: true,
-      _keepCover: record._keepCover,
-      cover: record._keepCover ? record.cover : undefined,
+      _keepCover: value._keepCover,
+      _collectionIds: value._collectionIds,
+      description: value.description,
+      cover: value._keepCover ? value.cover : undefined,
     });
 
     return false;
@@ -271,21 +275,12 @@ export default function Song(): ReactElement {
           <>
             <Row gutter={10}>
               <Col span={12}>
-                <Form.Item
-                  name="_continuesUpload"
-                  valuePropName="checked"
-                  label={t("continuesUpload")}
-                  layout="horizontal"
-                >
+                <Form.Item name="_continuesUpload" label={t("continuesUpload")}>
                   <Switch />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="_keepCover"
-                  valuePropName="checked"
-                  label={t("keepCover")}
-                >
+                <Form.Item name="_keepCover" label={t("keepCover")}>
                   <Switch />
                 </Form.Item>
               </Col>
@@ -314,7 +309,7 @@ export default function Song(): ReactElement {
                 onChange={handleFileChange}
               />
             </Form.Item>
-            <Form.Item name="ffprobeInfo" label={t("song.index")}>
+            <Form.Item name="index" label={t("song.index")}>
               <InputNumber
                 min={-9999}
                 max={9999}

@@ -30,9 +30,13 @@ export default function WordInput({
         onChange={(e) => onChange?.(e.target.value)}
         {...props}
       />
-      <div>
+      <div style={{ paddingTop: "5px" }}>
         {words.map((word) => (
-          <Tag key={word} onClick={() => onChange?.(word)}>
+          <Tag
+            key={word}
+            onClick={() => onChange?.(word)}
+            style={{ cursor: "pointer" }}
+          >
             {word}
           </Tag>
         ))}

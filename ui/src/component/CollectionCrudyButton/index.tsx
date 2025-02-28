@@ -117,13 +117,13 @@ export default function CollectionCrudyButton(
       <Form.Item name="cover" label={t("collection.cover")}>
         <Uploader serverURL={config.SERVER_STATIC_URL} />
       </Form.Item>
-      <Form.Item name="ffprobeInfo" label={t("song.index")}>
+      <Form.Item name="index" label={t("collection.index")}>
         <InputNumber
           min={-9999}
           max={9999}
           step={1}
           precision={0}
-          placeholder={t("song.index")}
+          placeholder={t("collection.index")}
         />
       </Form.Item>
       <Form.Item
