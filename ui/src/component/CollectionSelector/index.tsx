@@ -22,7 +22,7 @@ export default function CollectionSelector(
     () => ({
       ...BaseSearchParams,
       orderBy_updatedAt: "desc",
-      orderBy_index: "desc",
+      orderBy_index: "asc",
     }),
     [],
   );

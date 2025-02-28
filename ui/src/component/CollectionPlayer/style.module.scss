@@ -8,6 +8,7 @@
 
   & {
     @media screen and (max-width: mobile.$max-width) {
+      position: relative;
       top: 0 !important;
       left: 0 !important;
       width: 100vw;
@@ -16,10 +17,8 @@
     }
   }
 
-  &.collapsed {
-    :global(.ant-card-body) {
-      display: none;
-    }
+  &.collapsed > :global(.ant-card-body) {
+    display: none;
   }
 
   & > :global(.ant-card-head) {

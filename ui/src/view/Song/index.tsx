@@ -46,6 +46,7 @@ import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import WordInput from "../../component/WordInput";
+import { isiPhone } from "../../helper/mobile.ts";
 import useSafeHeight from "../../hook/useSafeHeight.ts";
 import { ICollection } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
@@ -78,7 +79,13 @@ export default function Song(): ReactElement {
     [],
   );
 
-  const y = useSafeHeight(SafeY);
+  const safeY = useMemo(() => {
+    if (isiPhone()) {
+      return SafeY + 20;
+    }
+    return SafeY;
+  }, []);
+  const y = useSafeHeight(safeY);
 
   const fileRef = useRef<File | undefined>();
 
@@ -120,7 +127,7 @@ export default function Song(): ReactElement {
       {
         title: t("collection._"),
         dataIndex: "_nonartistName",
-        width: 200,
+        width: 300,
         render: (v) => <Ellipsis>{v}</Ellipsis>,
         filtered: !!searchParams["like_name"],
         ...searchable<IRecord, ICollection["id"]>(
@@ -138,6 +145,7 @@ export default function Song(): ReactElement {
       {
         title: t("song.name"),
         dataIndex: "name",
+        width: 300,
         render: (v, record) => {
           return (
             <Button
