@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/allape/gogger"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -53,27 +54,29 @@ type FFProbeJson struct {
 }
 
 func FFProbe(file string) (*FFProbeJson, string, error) {
-	stat, err := os.Stat(file)
+	f, err := os.Open(file)
 	if err != nil {
 		return nil, "", err
-	} else if stat.IsDir() {
-		return nil, "", fmt.Errorf("ffprobe: %s is a directory", file)
 	}
+	return FFProbeReader(f)
+}
 
+func FFProbeReader(reader io.Reader) (*FFProbeJson, string, error) {
 	cmd := exec.Command(
 		"ffprobe",
 		"-v", "quiet",
 		"-print_format", "json",
 		"-show_format",
 		"-show_streams",
-		file,
+		"-i", "-",
 	)
+	cmd.Stdin = reader
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, "", fmt.Errorf("ffprobe: %w: %s", err, output)
 	}
 
-	l.Debug().Println(file, string(output))
+	l.Debug().Println(string(output))
 
 	var ffprobe FFProbeJson
 	err = json.Unmarshal(output, &ffprobe)

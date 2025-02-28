@@ -10,7 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/h2non/filetype"
 	"gorm.io/gorm"
+	"io"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 )
@@ -109,7 +111,7 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 				if len(coverBytes) > 0 {
 					cover, _, err := gocrud.SaveAsDigestedFile(
 						env.StaticFolder,
-						"cover."+string(coverExt),
+						"cover"+ffmpeg.GetExtByCodecName(coverExt),
 						bytes.NewReader(coverBytes),
 						int64(len(coverBytes)),
 						"",
@@ -134,6 +136,42 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		}
 
 		context.JSON(http.StatusOK, gocrud.R[model.Song]{Code: gocrud.RestCoder.OK(), Data: song})
+	})
+
+	group.POST("/ffprobe", func(context *gin.Context) {
+		_, str, err := ffmpeg.FFProbeReader(context.Request.Body)
+		if err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+		context.JSON(http.StatusOK, str)
+	})
+
+	group.POST("/extract-cover", func(context *gin.Context) {
+		tmp, err := os.CreateTemp(os.TempDir(), "song-*")
+		if err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		n, err := io.Copy(tmp, context.Request.Body)
+		if err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		} else if context.Request.ContentLength > 0 && n != context.Request.ContentLength {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "incomplete file")
+			return
+		}
+
+		cover, codec, err := ffmpeg.ExtractCover(tmp.Name(), nil)
+		if err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		ext := ffmpeg.GetExtByCodecName(codec)
+
+		context.Data(http.StatusOK, "image/"+ext, cover)
 	})
 
 	return nil
