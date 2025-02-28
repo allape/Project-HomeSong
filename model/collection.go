@@ -12,7 +12,7 @@ type Collection struct {
 	Description string `json:"description"`
 	Keywords    string `json:"keywords"`
 	Cover       string `json:"cover"`
-	Index       int32  `json:"index"`
+	Index       int32  `json:"index" gorm:"default:0"`
 }
 
 type CollectionSong struct {
