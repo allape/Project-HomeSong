@@ -20,7 +20,7 @@ export default function WordInput({
       return;
     }
 
-    setWords(value.split(/\s+/).filter((i) => !!i));
+    setWords(value.split(/[-|,.、/]+/).filter((i) => !!i.trim()));
   }, [value]);
 
   return (
