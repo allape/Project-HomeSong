@@ -51,18 +51,7 @@ function modifySong(s: ISongWithCollections): IModifiedSong {
     ...s,
     _url: `${config.SERVER_STATIC_URL}${s.filename}`,
     _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
-    _name: `${
-      s._collections?.length
-        ? s._collections
-            .filter((c) => c.type === "artist")
-            .map((c) => c.name)
-            .join(", ")
-        : ""
-    } - ${s.name}`,
-    _collectionName: s._collections
-      .filter((c) => c.type !== "artist")
-      .map((c) => c.name)
-      .join(", "),
+    _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
   };
 }
 
@@ -101,9 +90,11 @@ export default function CollectionPlayer({
     await execute(async () => {
       const songs = await SongCrudy.page<ISongSearchParams>(
         currentRef.current,
-        1000,
+        10000,
         {
           in_id: collectionSongsRef.current,
+          orderBy_updatedAt: "desc",
+          orderBy_index: "asc",
         },
       );
 
@@ -304,7 +295,7 @@ export default function CollectionPlayer({
                     />
                   }
                   title={item._name}
-                  description={item._collectionName || item.mime}
+                  description={`${item._nonartistName || '---'} - ${item.mime}`}
                 />
               </List.Item>
             )}

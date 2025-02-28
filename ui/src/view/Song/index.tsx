@@ -52,14 +52,19 @@ import styles from "./style.module.scss";
 
 type ISearchParams = ISongSearchParams;
 
-interface IRecord extends ISong {
+interface IRecord
+  extends Partial<
+      Pick<
+        ISongWithCollections,
+        "_collections" | "_artistName" | "_nonartistName"
+      >
+    >,
+    ISong {
   _continuesUpload?: boolean;
   _keepCover?: boolean;
 
   _file?: File;
   _collectionIds?: ICollection["id"][];
-  _artistNames?: ICollection["name"][];
-  _nonartistNames?: ICollection["name"][];
 }
 
 export default function Song(): ReactElement {
@@ -124,14 +129,10 @@ export default function Song(): ReactElement {
                   setSongForPlay(record as ISongWithCollections);
                 }}
               >
-                {record._artistNames?.length
-                  ? `${record._artistNames.join(", ")} - `
-                  : ""}
-                {v}
+                {record._artistName ? `${record._artistName} - ` : ""}
+                {AntdEllipsisCell(50)(v)}
               </Button>
-              <div style={{ paddingLeft: "7px" }}>
-                {record._nonartistNames?.join(", ")}
-              </div>
+              <div style={{ paddingLeft: "7px" }}>{record._nonartistName}</div>
             </div>
           );
         },
@@ -198,7 +199,7 @@ export default function Song(): ReactElement {
       fileRef.current = e.target.files?.[0];
 
       if (fileRef.current && !form.getFieldValue("name")) {
-        form.setFieldValue("name", fileRef.current.name.split(".")[0]);
+        form.setFieldValue("name", fileRef.current.name);
       }
     },
     [form],

@@ -1,4 +1,4 @@
-import Crudy, { config, get } from '@allape/gocrud-react';
+import Crudy, { config, get } from "@allape/gocrud-react";
 import {
   ICollection,
   ICollectionSearchParams,
@@ -23,6 +23,8 @@ export function upload(song: Partial<ISong>, file?: File): Promise<ISong> {
 
 export interface ISongWithCollections extends ISong {
   _collections: ICollection[];
+  _artistName: string;
+  _nonartistName: string;
 }
 
 export async function fillSongsWithCollections(
@@ -57,9 +59,20 @@ export async function fillSongsWithCollections(
     const aIds = collectionSongs
       .filter((cs) => cs.songId === s.id)
       .map((cs) => cs.collectionId);
+
+    const cs = collections.filter((a) => aIds.includes(a.id));
+
     return {
       ...s,
-      _collections: collections.filter((a) => aIds.includes(a.id)),
+      _collections: cs,
+      _artistName: cs
+        .filter((c) => c.type === "artist")
+        .map((c) => c.name)
+        .join(", "),
+      _nonartistName: cs
+        .filter((c) => c.type !== "artist")
+        .map((c) => c.name)
+        .join(", "),
     };
   });
 }

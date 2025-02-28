@@ -32,6 +32,18 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		WillSave: func(record *model.Collection, context *gin.Context, db *gorm.DB) {
 			record.Name = strings.TrimSpace(record.Name)
 			record.Keywords = strings.TrimSpace(record.Keywords)
+			record.Type = strings.TrimSpace(record.Type)
+
+			if record.Type == "" {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "type is required")
+				return
+			}
+
+			var exist model.Collection
+			if err := db.Model(&exist).Where("`name` = ? AND `type` = ?", record.Name, record.Type).First(&exist).Error; err == nil && exist.ID != record.ID {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "name already exists")
+				return
+			}
 		},
 	})
 	if err != nil {
