@@ -19,6 +19,7 @@ import {
   useMemo,
   useRef,
   useState,
+  WheelEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -77,6 +78,7 @@ export default function CollectionPlayer({
 
   const collectionSongsRef = useRef<ISong["id"][]>([]);
   const currentRef = useRef<PageNumber>(1);
+  const lastScrolledTime = useRef<number>(0);
 
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [atTop, setAtTop] = useState<boolean>(true);
@@ -89,8 +91,23 @@ export default function CollectionPlayer({
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
   );
-  const [playing, setPlaying] = useState<boolean>(false);
+  const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
+
+  useEffect(() => {
+    if (!song) {
+      return;
+    }
+
+    if (performance.now() - lastScrolledTime.current < 100) {
+      return;
+    }
+
+    document.querySelector(`[data-id=song-${song.id}]`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [song]);
 
   const handleNextPage = useCallback(async () => {
     await execute(async () => {
@@ -131,24 +148,23 @@ export default function CollectionPlayer({
   const handleChange = useCallback(
     async (id?: ICollection["id"]) => {
       if (!id) {
+        collectionSongsRef.current = [];
         setCollection(undefined);
-        setSongs([]);
-        return;
+      } else {
+        await execute(async () => {
+          collectionSongsRef.current = (
+            await CollectionSongCrudy.all<ICollectionSongSearchParams>({
+              in_collectionId: id ? [id] : undefined,
+            })
+          ).map((cs) => cs.songId);
+          setCollection(id);
+        });
       }
 
-      await execute(async () => {
-        collectionSongsRef.current = (
-          await CollectionSongCrudy.all<ICollectionSongSearchParams>({
-            in_collectionId: [id],
-          })
-        ).map((cs) => cs.songId);
-        currentRef.current = 1;
-        setCollection(id);
-      });
-
+      currentRef.current = 1;
       await handleNextPage();
     },
-    [execute, handleNextPage, setCollection, setSongs],
+    [execute, handleNextPage, setCollection],
   );
 
   const handleChangeSong = useCallback(
@@ -205,7 +221,15 @@ export default function CollectionPlayer({
 
   const handleShuffle = useCallback(() => {
     setShuffle((v) => !v);
-  }, [setShuffle]);
+    if (!playingRef.current) {
+      handleNext();
+    }
+  }, [handleNext, playingRef, setShuffle]);
+
+  const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
+    setAtTop(e.currentTarget.parentElement?.scrollTop === 0);
+    lastScrolledTime.current = performance.now();
+  }, []);
 
   return (
     <Card
@@ -291,12 +315,7 @@ export default function CollectionPlayer({
         </>
       }
     >
-      <div
-        className={styles.player}
-        onWheel={(e) =>
-          setAtTop(e.currentTarget.parentElement?.scrollTop === 0)
-        }
-      >
+      <div className={styles.player} onWheel={handleWheel}>
         <div className={styles.header}>
           <CollectionSelector
             loading={loading}
@@ -323,6 +342,7 @@ export default function CollectionPlayer({
             renderItem={(item) => (
               <List.Item
                 key={item.id}
+                data-id={`song-${item.id}`}
                 onClick={() => setSong(item)}
                 className={cls(
                   styles.song,

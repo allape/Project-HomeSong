@@ -177,6 +177,7 @@ export default function SongPlayer({
             autoPlay
             controls
             ref={audioRef}
+            key={song?.id}
             src={song?._url}
             className={styles.audio}
             onPlay={handlePlay}
