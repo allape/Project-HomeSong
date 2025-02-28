@@ -356,7 +356,7 @@ export default function Song(): ReactElement {
               />
             </Form.Item>
             <Form.Item name="cover" label={t("song.cover")}>
-              <Uploader serverURL={config.SERVER_STATIC_URL} />
+              <Uploader serverURL={config.SERVER_STATIC_URL} accept="image/*" />
             </Form.Item>
             <Form.Item
               name="name"
