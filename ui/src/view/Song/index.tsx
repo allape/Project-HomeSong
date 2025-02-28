@@ -58,7 +58,8 @@ interface IRecord extends ISong {
 
   _file?: File;
   _collectionIds?: ICollection["id"][];
-  _collectionNames?: ICollection["name"][];
+  _artistNames?: ICollection["name"][];
+  _nonartistNames?: ICollection["name"][];
 }
 
 export default function Song(): ReactElement {
@@ -123,13 +124,13 @@ export default function Song(): ReactElement {
                   setSongForPlay(record as ISongWithCollections);
                 }}
               >
-                {record._collectionNames?.length
-                  ? `${record._collectionNames.join(" | ")} - `
+                {record._artistNames?.length
+                  ? `${record._artistNames.join(", ")} - `
                   : ""}
                 {v}
               </Button>
               <div style={{ paddingLeft: "7px" }}>
-                {AntdEllipsisCell(100)(record.description)}
+                {record._nonartistNames?.join(", ")}
               </div>
             </div>
           );
@@ -167,7 +168,12 @@ export default function Song(): ReactElement {
       return swcs.map<IRecord>((s) => ({
         ...s,
         _collectionIds: s._collections.map((c) => c.id),
-        _collectionNames: s._collections.map((c) => c.name),
+        _artistNames: s._collections
+          .filter((c) => c.type === "artist")
+          .map((c) => c.name),
+        _nonartistNames: s._collections
+          .filter((c) => c.type !== "artist")
+          .map((c) => c.name),
       }));
     },
     [],

@@ -62,7 +62,7 @@ func main() {
 	}
 
 	err = gocrud.NewSingleHTMLServe(engine.Group("/ui"), env.UIFolder, &gocrud.SingleHTMLServeConfig{
-		AllowReplace: false,
+		AllowReplace: true,
 	})
 	if err != nil {
 		l.Error().Fatalf("Failed to setup single html serve: %v", err)

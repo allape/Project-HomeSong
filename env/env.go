@@ -20,6 +20,6 @@ var (
 
 	DatabaseDSN = goenv.Getenv(databaseDSN, "root:Root_123456@tcp(127.0.0.1:3306)/homesong?charset=utf8mb4&parseTime=True&loc=Local")
 
-	UIFolder     = goenv.Getenv(uiFolder, "./ui/dist")
+	UIFolder     = goenv.Getenv(uiFolder, "./ui/dist/index.html")
 	StaticFolder = goenv.Getenv(staticFolder, "./static")
 )
