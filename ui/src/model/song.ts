@@ -9,6 +9,7 @@ export interface ISong extends IBase {
   mime: string;
   ffprobeInfo: string;
   description: string;
+  index: number;
 }
 
 export interface ISongSearchParams extends IBaseSearchParams {

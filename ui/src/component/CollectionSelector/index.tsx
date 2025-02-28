@@ -21,7 +21,6 @@ export default function CollectionSelector(
   const sp = useMemo<ICollectionSearchParams>(
     () => ({
       ...BaseSearchParams,
-      orderBy_updatedAt: "desc",
       orderBy_index: "asc",
     }),
     [],

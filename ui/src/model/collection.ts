@@ -12,6 +12,7 @@ export interface ICollection extends IBase {
   description: string;
   keywords: string;
   cover: string;
+  index: number;
 }
 
 export interface ICollectionSearchParams extends IBaseSearchParams {

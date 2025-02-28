@@ -42,7 +42,6 @@ export default function CollectionCrudyButton(
   const [searchParams, setSearchParams] = useState<ISearchParams>(() => ({
     ...BaseSearchParams,
     orderBy_updatedAt: "desc",
-    orderBy_index: "desc",
   }));
 
   const columns = useMemo<TableColumnsType<IRecord>>(
@@ -50,6 +49,10 @@ export default function CollectionCrudyButton(
       {
         title: t("id"),
         dataIndex: "id",
+      },
+      {
+        title: t("collection.index"),
+        dataIndex: "index",
       },
       {
         title: t("collection.type"),
