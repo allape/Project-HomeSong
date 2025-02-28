@@ -1,8 +1,8 @@
 import { IBase, IBaseSearchParams } from "@allape/gocrud";
-import { ahelper } from "@allape/gocrud-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ISong } from './song.ts';
+import { IColoredLV } from "@allape/gocrud-react";
 
 export type CollectionType = "artist" | "album" | "playlist";
 
@@ -20,13 +20,9 @@ export interface ICollectionSearchParams extends IBaseSearchParams {
   keywords?: string;
 }
 
-export interface IColoredLV extends ahelper.ILV<CollectionType> {
-  color?: string;
-}
-
-export function useCollectionTypes(): IColoredLV[] {
+export function useCollectionTypes(): IColoredLV<CollectionType>[] {
   const { t } = useTranslation();
-  return useMemo<IColoredLV[]>(
+  return useMemo<IColoredLV<CollectionType>[]>(
     () => [
       {
         label: t("collection.types.artist"),

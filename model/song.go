@@ -13,4 +13,5 @@ type Song struct {
 	MIME        string `json:"mime"`
 	FFProbeInfo string `json:"ffprobeInfo"`
 	Description string `json:"description"`
+	Index       int32  `json:"index"`
 }

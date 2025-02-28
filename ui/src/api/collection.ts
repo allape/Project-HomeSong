@@ -1,4 +1,4 @@
-import Crudy, { aapi, config } from "@allape/gocrud-react";
+import Crudy, { config, get } from "@allape/gocrud-react";
 import { ICollection, ICollectionSong } from "../model/collection.ts";
 import { ISong } from "../model/song.ts";
 
@@ -14,7 +14,7 @@ export function saveCollectionSongsBySong(
   songId: ISong["id"],
   collectionIds: ICollection["id"][],
 ): Promise<ICollectionSong[]> {
-  return aapi.get(
+  return get(
     `${config.SERVER_URL}/collection/song/save-by-song/${songId}?collectionIds=${encodeURIComponent(collectionIds.join(","))}`,
     {
       method: "PUT",

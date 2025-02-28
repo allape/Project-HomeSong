@@ -1,15 +1,15 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
-  ahelper,
+  AntdEllipsisCell,
   asDefaultPattern,
   config,
   CrudyButton,
   searchable,
   Uploader,
-} from "@allape/gocrud-react";
+} from '@allape/gocrud-react';
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
 import { PictureOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Form, Input, Select, TableColumnsType, Tag } from "antd";
+import { Avatar, Form, Input, InputNumber, Select, TableColumnsType, Tag } from 'antd';
 import { ReactElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CollectionCrudy } from "../../api/collection.ts";
@@ -90,7 +90,7 @@ export default function CollectionCrudyButton(
       {
         title: t("collection.description"),
         dataIndex: "description",
-        render: (v) => ahelper.EllipsisCell()(v),
+        render: (v) => AntdEllipsisCell()(v),
       },
       {
         title: t("createdAt"),
@@ -116,6 +116,15 @@ export default function CollectionCrudyButton(
     >
       <Form.Item name="cover" label={t("collection.cover")}>
         <Uploader serverURL={config.SERVER_STATIC_URL} />
+      </Form.Item>
+      <Form.Item name="ffprobeInfo" label={t("song.index")}>
+        <InputNumber
+          min={-9999}
+          max={9999}
+          step={1}
+          precision={0}
+          placeholder={t("song.index")}
+        />
       </Form.Item>
       <Form.Item
         name="type"

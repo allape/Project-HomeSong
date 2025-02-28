@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@allape/gocrud": "github:allape/gocrud-js",
-    "@allape/gocrud-react": "github:allape/gocrud-react",
+    "@allape/gocrud-react": "../../gocrud-react",
     "@allape/use-loading": "github:allape/use-loading",
     "@ant-design/icons": "^5.6.1",
     "antd": "^5.24.2",

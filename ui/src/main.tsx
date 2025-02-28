@@ -23,6 +23,7 @@ i18n
           ffprobeInfo: "FFProbe 信息",
           mime: "MIME",
           description: "描述",
+          index: "序号",
         },
         collection: {
           _: "收藏",
@@ -31,6 +32,7 @@ i18n
           description: "描述",
           keywords: "关键词",
           cover: "封面",
+          index: "序号",
           types: {
             artist: "艺术家",
             album: "专辑",
@@ -59,6 +61,7 @@ i18n
           ffprobeInfo: "FFProbe Info",
           mime: "MIME",
           description: "Description",
+          index: "Index",
         },
         collection: {
           _: "Collection",
@@ -67,6 +70,7 @@ i18n
           description: "Description",
           keywords: "Keywords",
           cover: "Cover",
+          index: "Index",
           types: {
             artist: "Artist",
             album: "Album",

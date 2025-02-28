@@ -1,6 +1,6 @@
 import { BaseSearchParams } from "@allape/gocrud";
 import {
-  ahelper,
+  AntdEllipsisCell,
   asDefaultPattern,
   config,
   CrudyTable,
@@ -17,6 +17,7 @@ import {
   Form,
   FormInstance,
   Input,
+  InputNumber,
   MenuProps,
   TableColumnsType,
 } from "antd";
@@ -132,7 +133,7 @@ export default function Song(): ReactElement {
       {
         title: t("song.ffprobeInfo"),
         dataIndex: "ffprobeInfo",
-        render: (v) => ahelper.EllipsisCell()(v),
+        render: (v) => AntdEllipsisCell()(v),
       },
       {
         title: t("createdAt"),
@@ -259,6 +260,15 @@ export default function Song(): ReactElement {
                 type="file"
                 accept="audio/*,video/*"
                 onChange={handleFileChange}
+              />
+            </Form.Item>
+            <Form.Item name="ffprobeInfo" label={t("song.index")}>
+              <InputNumber
+                min={-9999}
+                max={9999}
+                step={1}
+                precision={0}
+                placeholder={t("song.index")}
               />
             </Form.Item>
             <Form.Item name="cover" label={t("song.cover")}>

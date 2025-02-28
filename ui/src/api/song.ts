@@ -1,4 +1,4 @@
-import Crudy, { aapi, config } from "@allape/gocrud-react";
+import Crudy, { config, get } from '@allape/gocrud-react';
 import {
   ICollection,
   ICollectionSearchParams,
@@ -15,7 +15,7 @@ export function upload(song: Partial<ISong>, file?: File): Promise<ISong> {
   if (file) {
     form.append("file", file);
   }
-  return aapi.get(`${config.SERVER_URL}/song/upload`, {
+  return get(`${config.SERVER_URL}/song/upload`, {
     method: "PUT",
     body: form,
   });
