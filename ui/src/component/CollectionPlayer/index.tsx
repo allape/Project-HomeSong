@@ -94,6 +94,15 @@ export default function CollectionPlayer({
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
 
+  const scrollToCurrentSong = useCallback(() => {
+    document
+      .querySelector(`[data-id=song-${songRef.current?.id}]`)
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, [songRef]);
+
   useEffect(() => {
     if (!song) {
       return;
@@ -103,11 +112,8 @@ export default function CollectionPlayer({
       return;
     }
 
-    document.querySelector(`[data-id=song-${song.id}]`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  }, [song]);
+    scrollToCurrentSong();
+  }, [scrollToCurrentSong, song]);
 
   const handleNextPage = useCallback(async () => {
     await execute(async () => {
@@ -241,7 +247,9 @@ export default function CollectionPlayer({
           justifyContent="flex-start"
           alignItems="center"
         >
-          {song ? song._name : t("player.name")}
+          <span onClick={scrollToCurrentSong}>
+            {song ? song._name : t("player.name")}
+          </span>
           {song && (
             <Tooltip title={playing ? t("player.pause") : t("player.prev")}>
               <Button
