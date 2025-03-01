@@ -91,6 +91,9 @@ export default function CollectionPlayer({
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
   );
+
+  const [current, setCurrent] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
 
@@ -247,40 +250,23 @@ export default function CollectionPlayer({
           justifyContent="flex-start"
           alignItems="center"
         >
-          <span onClick={scrollToCurrentSong}>
-            {song ? song._name : t("player.name")}
-          </span>
+          <Tooltip title={song ? song._name : t("player.name")}>
+            <span className={styles.name} onClick={scrollToCurrentSong}>
+              {song ? song._name : t("player.name")}
+            </span>
+          </Tooltip>
           {song && (
-            <Tooltip title={playing ? t("player.pause") : t("player.prev")}>
-              <Button
-                className={cls(
-                  styles.button,
-                  collapsed ? undefined : styles.mobile,
-                )}
-                type="link"
-                danger={playing}
-                onClick={() =>
-                  PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
-                }
-              >
-                {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
-              </Button>
-            </Tooltip>
+            <MiniControls
+              current={current}
+              duration={duration}
+              playing={playing}
+              collapsed={collapsed}
+              onToggle={() =>
+                PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
+              }
+              onNext={handleNext}
+            />
           )}
-          {song ? (
-            <Tooltip title={t("player.next")}>
-              <Button
-                className={cls(
-                  styles.button,
-                  collapsed ? undefined : styles.mobile,
-                )}
-                type="link"
-                onClick={handleNext}
-              >
-                <StepForwardOutlined />
-              </Button>
-            </Tooltip>
-          ) : undefined}
         </Flex>
       }
       extra={
@@ -340,6 +326,8 @@ export default function CollectionPlayer({
             onNext={handleNext}
             onPrev={handlePrev}
             onShuffle={handleShuffle}
+            onCurrentChange={setCurrent}
+            onDurationChange={setDuration}
           />
         </div>
         <div className={styles.list}>
@@ -375,5 +363,56 @@ export default function CollectionPlayer({
         </div>
       </div>
     </Card>
+  );
+}
+
+interface IMiniControlsProps {
+  duration?: number;
+  current?: number;
+  playing: boolean;
+  collapsed: boolean;
+  onToggle: () => void;
+  onNext: () => void;
+}
+
+function MiniControls({
+  duration = 0,
+  current = 0,
+  playing,
+  collapsed,
+  onToggle,
+  onNext,
+}: IMiniControlsProps): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <>
+      <Tooltip title={playing ? t("player.pause") : t("player.prev")}>
+        <Button
+          className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+          type="link"
+          danger={playing}
+          onClick={onToggle}
+        >
+          {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
+        </Button>
+      </Tooltip>
+      <Tooltip title={t("player.next")}>
+        <Button
+          className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+          type="link"
+          onClick={onNext}
+        >
+          <StepForwardOutlined />
+        </Button>
+      </Tooltip>
+      {collapsed && (
+        <div className={styles.progress}>
+          <div
+            className={styles.bar}
+            style={{ width: `${(current / duration) * 100}%` }}
+          ></div>
+        </div>
+      )}
+    </>
   );
 }

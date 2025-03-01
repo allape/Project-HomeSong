@@ -129,7 +129,7 @@ export default function Song(): ReactElement {
         dataIndex: "_nonartistName",
         width: 300,
         render: (v) => <Ellipsis>{v}</Ellipsis>,
-        filtered: !!searchParams["like_name"],
+        filtered: !!searchParams["collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
           t("song.name"),
           (value) =>

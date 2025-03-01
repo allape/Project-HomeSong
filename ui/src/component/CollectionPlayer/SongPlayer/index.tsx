@@ -26,6 +26,8 @@ export interface ISongPlayerProps {
   onPrev?: () => void;
   onShuffle?: () => void;
   onChange?: (playing: boolean) => void;
+  onDurationChange?: (duration: number) => void;
+  onCurrentChange?: (current: number) => void;
 }
 
 export default function SongPlayer({
@@ -37,6 +39,8 @@ export default function SongPlayer({
   onNext,
   onShuffle,
   onChange,
+  onDurationChange,
+  onCurrentChange,
 }: ISongPlayerProps): ReactElement {
   const { t } = useTranslation();
 
@@ -128,19 +132,24 @@ export default function SongPlayer({
     navigator.mediaSession.playbackState = "none";
   }, [onChange, onNext]);
 
-  const handleChange = useCallback((e: SyntheticEvent<HTMLAudioElement>) => {
-    if (
-      Number.isNaN(e.currentTarget.duration) ||
-      Number.isNaN(e.currentTarget.currentTime)
-    ) {
-      return;
-    }
-    navigator.mediaSession.setPositionState({
-      duration: e.currentTarget.duration,
-      playbackRate: e.currentTarget.playbackRate,
-      position: e.currentTarget.currentTime,
-    });
-  }, []);
+  const handleChange = useCallback(
+    (e: SyntheticEvent<HTMLAudioElement>) => {
+      if (
+        Number.isNaN(e.currentTarget.duration) ||
+        Number.isNaN(e.currentTarget.currentTime)
+      ) {
+        return;
+      }
+      onDurationChange?.(e.currentTarget.duration);
+      onCurrentChange?.(e.currentTarget.currentTime);
+      navigator.mediaSession.setPositionState({
+        duration: e.currentTarget.duration,
+        playbackRate: e.currentTarget.playbackRate,
+        position: e.currentTarget.currentTime,
+      });
+    },
+    [onCurrentChange, onDurationChange],
+  );
 
   useEffect(() => {
     if (!emitter) {

@@ -35,12 +35,40 @@
   @include mobile.Mobile;
 
   .title {
+    position: relative;
+
+    .name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .button {
       transition: 0.25s;
       scale: 2;
 
       &:active {
         scale: 2.2;
+      }
+    }
+
+    .progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 1px;
+      width: 100%;
+      overflow: hidden;
+      background-color: lightgray;
+      z-index: 1000;
+
+      .bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background-color: #1677ff;
       }
     }
   }
