@@ -20,12 +20,18 @@ export default function WordInput({
       return;
     }
 
-    setWords(
-      value
-        .split(/[-|,.、/]+/)
-        .map((i) => i.trim())
-        .filter((i) => !!i),
-    );
+    const values = value
+      .split(/[-|,.、/]+/)
+      .map((i) => i.trim())
+      .filter((i) => !!i);
+
+    setWords((old) => {
+      const words: string[] = Array.from(new Set([...values, ...old]));
+      if (words.length > 10) {
+        return words.slice(0, 10);
+      }
+      return words;
+    });
   }, [value]);
 
   return (
