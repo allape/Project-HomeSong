@@ -19,7 +19,6 @@ import {
   useMemo,
   useRef,
   useState,
-  WheelEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -53,7 +52,9 @@ export interface ICollectionPlayerProps {
 function modifySong(s: ISongWithCollections): IModifiedSong {
   return {
     ...s,
-    _url: s.mime ? `${config.SERVER_STATIC_URL}${s.filename}` : `${config.SERVER_URL}/song/hotwire/${s.id}`,
+    _url: s.mime
+      ? `${config.SERVER_STATIC_URL}${s.filename}`
+      : `${config.SERVER_URL}/song/hotwire/${s.id}`,
     _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
     _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
   };
@@ -76,12 +77,14 @@ export default function CollectionPlayer({
 
   const PlayerEventEmitter = useMemo(() => new SongPlayEventEmitter(), []);
 
+  const scrolledContentRef = useRef<HTMLDivElement | null>(null);
   const collectionSongsRef = useRef<ISong["id"][]>([]);
   const currentRef = useRef<PageNumber>(1);
   const lastScrolledTime = useRef<number>(0);
+  const scrollerTimerRef = useRef<number>(-1);
 
   const [collapsed, setCollapsed] = useState<boolean>(false);
-  const [atTop, setAtTop] = useState<boolean>(true);
+  const [shadow, setShadow] = useState<boolean>(false);
 
   const [collection, collectionRef, setCollection] = useProxy<
     ICollection["id"] | undefined
@@ -97,6 +100,19 @@ export default function CollectionPlayer({
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
 
+  useEffect(() => {
+    return () => {
+      clearTimeout(scrollerTimerRef.current);
+    };
+  }, []);
+
+  const checkShadow = useCallback(() => {
+    if (scrolledContentRef.current?.parentElement) {
+      setShadow(scrolledContentRef.current.parentElement.scrollTop !== 0);
+    }
+    lastScrolledTime.current = performance.now();
+  }, []);
+
   const scrollToCurrentSong = useCallback(() => {
     document
       .querySelector(`[data-id=song-${songRef.current?.id}]`)
@@ -104,7 +120,11 @@ export default function CollectionPlayer({
         behavior: "smooth",
         block: "center",
       });
-  }, [songRef]);
+    clearTimeout(scrollerTimerRef.current);
+    scrollerTimerRef.current = setTimeout(() => {
+      checkShadow();
+    }, 500) as unknown as number;
+  }, [checkShadow, songRef]);
 
   useEffect(() => {
     if (!song) {
@@ -235,11 +255,6 @@ export default function CollectionPlayer({
     }
   }, [handleNext, playingRef, setShuffle]);
 
-  const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
-    setAtTop(e.currentTarget.parentElement?.scrollTop === 0);
-    lastScrolledTime.current = performance.now();
-  }, []);
-
   return (
     <Card
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
@@ -253,12 +268,13 @@ export default function CollectionPlayer({
           <Tooltip title={song ? song._name : t("player.name")}>
             <span className={styles.name} onClick={scrollToCurrentSong}>
               {song ? song._name : t("player.name")}
+              {collapsed && (
+                <MiniProgressBar current={current} duration={duration} />
+              )}
             </span>
           </Tooltip>
           {song && (
             <MiniControls
-              current={current}
-              duration={duration}
               playing={playing}
               collapsed={collapsed}
               onToggle={() =>
@@ -309,7 +325,11 @@ export default function CollectionPlayer({
         </>
       }
     >
-      <div className={styles.player} onWheel={handleWheel}>
+      <div
+        ref={scrolledContentRef}
+        className={styles.player}
+        onWheel={checkShadow}
+      >
         <div className={styles.header}>
           <CollectionSelector
             loading={loading}
@@ -318,7 +338,7 @@ export default function CollectionPlayer({
             allowClear
           ></CollectionSelector>
           <SongPlayer
-            shadow={!atTop}
+            shadow={shadow}
             shuffle={shuffle}
             song={song}
             emitter={PlayerEventEmitter}
@@ -367,8 +387,6 @@ export default function CollectionPlayer({
 }
 
 interface IMiniControlsProps {
-  duration?: number;
-  current?: number;
   playing: boolean;
   collapsed: boolean;
   onToggle: () => void;
@@ -376,8 +394,6 @@ interface IMiniControlsProps {
 }
 
 function MiniControls({
-  duration = 0,
-  current = 0,
   playing,
   collapsed,
   onToggle,
@@ -405,14 +421,25 @@ function MiniControls({
           <StepForwardOutlined />
         </Button>
       </Tooltip>
-      {collapsed && (
-        <div className={styles.progress}>
-          <div
-            className={styles.bar}
-            style={{ width: `${(current / duration) * 100}%` }}
-          ></div>
-        </div>
-      )}
     </>
+  );
+}
+
+interface IMiniProgressBarProps {
+  duration?: number;
+  current?: number;
+}
+
+function MiniProgressBar({
+  duration = 0,
+  current = 0,
+}: IMiniProgressBarProps): ReactElement {
+  return (
+    <div className={styles.progress}>
+      <div
+        className={styles.bar}
+        style={{ width: `${(current / duration) * 100}%` }}
+      ></div>
+    </div>
   );
 }

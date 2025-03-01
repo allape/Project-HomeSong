@@ -35,13 +35,12 @@
   @include mobile.Mobile;
 
   .title {
-    position: relative;
-
     .name {
       flex: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      position: relative;
     }
 
     .button {
