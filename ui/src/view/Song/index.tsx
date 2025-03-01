@@ -29,6 +29,7 @@ import cls from "classnames";
 import {
   ChangeEvent,
   ReactElement,
+  ReactNode,
   useCallback,
   useMemo,
   useRef,
@@ -69,6 +70,9 @@ interface IRecord
 
   _file?: File;
   _collectionIds?: ICollection["id"][];
+
+  _url?: string;
+  _cover?: string;
 }
 
 export default function Song(): ReactElement {
@@ -108,16 +112,15 @@ export default function Song(): ReactElement {
       },
       {
         title: t("song.cover"),
-        dataIndex: "cover",
+        dataIndex: "_cover",
         width: 100,
         render: (v) => {
-          const url = `${config.SERVER_STATIC_URL}${v}`;
           return v ? (
             <Avatar
               className={styles.avatar}
               size={64}
-              src={url}
-              onClick={() => window.open(url)}
+              src={v}
+              onClick={() => window.open(v)}
             />
           ) : (
             <Avatar size={64} icon={<PictureOutlined />} />
@@ -172,6 +175,8 @@ export default function Song(): ReactElement {
       {
         title: t("song.mime"),
         dataIndex: "mime",
+        align: "center",
+        render: (v) => v || "-",
       },
       {
         title: t("song.ffprobeInfo"),
@@ -197,6 +202,10 @@ export default function Song(): ReactElement {
       const swcs = await fillSongsWithCollections(records);
       return swcs.map<IRecord>((s) => ({
         ...s,
+        _url: s.filename
+          ? `${config.SERVER_STATIC_URL}${s.filename}`
+          : undefined,
+        _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
         _collectionIds: s._collections.map((c) => c.id),
         _artistNames: s._collections
           .filter((c) => c.type === "artist")
@@ -275,6 +284,25 @@ export default function Song(): ReactElement {
     return false;
   }, []);
 
+  const actions = useCallback<
+    Exclude<ICrudyTableProps<IRecord>["actions"], undefined>
+  >(
+    (record): ReactNode => {
+      return (
+        <>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => window.open(record._url)}
+          >
+            {t("download")}
+          </Button>
+        </>
+      );
+    },
+    [t],
+  );
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -288,6 +316,7 @@ export default function Song(): ReactElement {
         afterSaved={handleAfterSaved}
         onFormInit={setForm}
         scroll={{ y, x: true }}
+        actions={actions}
         titleExtra={
           <>
             <Divider type="vertical" />

@@ -185,5 +185,33 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		context.Data(http.StatusOK, "image/"+ext, cover)
 	})
 
+	group.GET("/hotwire/:id", func(context *gin.Context) {
+		id := gocrud.Pick(gocrud.IDsFromCommaSplitString(context.Param("id")), 0, 0)
+		if id == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
+			return
+		}
+
+		var song model.Song
+		if err := db.Model(&song).First(&song, id).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		} else if song.Filename == "" {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "file not found")
+			return
+		}
+
+		filename := path.Join(env.StaticFolder, song.Filename)
+
+		context.Header("Content-Type", "audio/mpeg")
+		context.Writer.WriteHeaderNow()
+		context.Writer.Flush()
+
+		err := ffmpeg.ConvertToMp3(filename, context.Writer)
+		if err != nil {
+			l.Error().Println(err)
+		}
+	})
+
 	return nil
 }

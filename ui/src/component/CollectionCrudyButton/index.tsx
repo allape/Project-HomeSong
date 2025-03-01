@@ -49,10 +49,12 @@ export default function CollectionCrudyButton(
       {
         title: t("id"),
         dataIndex: "id",
+        width: 50,
       },
       {
         title: t("collection.index"),
         dataIndex: "index",
+        width: 100,
       },
       {
         title: t("collection.type"),

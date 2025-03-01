@@ -53,7 +53,7 @@ export interface ICollectionPlayerProps {
 function modifySong(s: ISongWithCollections): IModifiedSong {
   return {
     ...s,
-    _url: `${config.SERVER_STATIC_URL}${s.filename}`,
+    _url: s.mime ? `${config.SERVER_STATIC_URL}${s.filename}` : `${config.SERVER_URL}/song/hotwire/${s.id}`,
     _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
     _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
   };
