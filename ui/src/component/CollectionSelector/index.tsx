@@ -1,5 +1,5 @@
 import { BaseSearchParams } from "@allape/gocrud";
-import { CrudySelector } from "@allape/gocrud-react";
+import { PagedCrudySelector } from "@allape/gocrud-react";
 import { ICrudySelectorProps } from "@allape/gocrud-react/src/component/CrudySelector";
 import { PropsWithChildren, ReactElement, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,7 +27,7 @@ export default function CollectionSelector(
   );
 
   return (
-    <CrudySelector<ICollection, ICollectionSearchParams>
+    <PagedCrudySelector<ICollection, ICollectionSearchParams>
       placeholder={`${t("select")} ${t("collection._")}`}
       {...props}
       crudy={CollectionCrudy}

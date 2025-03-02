@@ -9,7 +9,6 @@ import {
 export type X = number;
 export type Y = number;
 export type OnMouseDown = (e: RME<HTMLElement>) => void;
-export type OnMouseUp = () => void;
 
 export type Dragger = {
   x: X;
@@ -24,14 +23,19 @@ export interface IOptions {
   yOffset?: Y;
 }
 
-export default function useDragger(
-  { x: xFP, y: yFP, xOffset, yOffset }: IOptions = {
+export default function useDragger(defaultFunc?: () => IOptions): Dragger {
+  const {
+    x: xFP,
+    y: yFP,
+    xOffset,
+    yOffset,
+  }: IOptions = defaultFunc?.() || {
     x: 0,
     y: 0,
     xOffset: 0,
     yOffset: 0,
-  },
-): Dragger {
+  };
+
   const xRef = useRef<X>(0);
   const yRef = useRef<Y>(0);
   const isDraggingRef = useRef(false);

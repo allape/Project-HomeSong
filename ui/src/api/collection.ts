@@ -27,3 +27,14 @@ export function getRandomSongInCollection(
 ): Promise<ISong> {
   return get(`${config.SERVER_URL}/collection/random/${id}`);
 }
+
+export function createOrGetCollectionsByArtistNames(
+  names: string[],
+): Promise<ICollection[]> {
+  return get(
+    `${config.SERVER_URL}/collection/create-or-get/by-artist-names/${encodeURIComponent(names.join(","))}`,
+    {
+      method: "PUT",
+    },
+  );
+}

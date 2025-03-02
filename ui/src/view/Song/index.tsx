@@ -7,10 +7,17 @@ import {
   ICrudyTableProps,
   searchable,
   Uploader,
+  useMobile,
 } from "@allape/gocrud-react";
 import NewCrudyButtonEventEmitter from "@allape/gocrud-react/src/component/CrudyButton/eventemitter.ts";
-import { MoreOutlined, PictureOutlined } from "@ant-design/icons";
 import {
+  CopyOutlined,
+  DownloadOutlined,
+  MoreOutlined,
+  PictureOutlined,
+} from "@ant-design/icons";
+import {
+  App,
   Avatar,
   Button,
   Col,
@@ -36,7 +43,10 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { saveCollectionSongsBySong } from "../../api/collection.ts";
+import {
+  createOrGetCollectionsByArtistNames,
+  saveCollectionSongsBySong,
+} from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
   ISongWithCollections,
@@ -47,13 +57,9 @@ import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import WordInput from "../../component/WordInput";
-import { isiPhone } from "../../helper/mobile.ts";
-import useSafeHeight from "../../hook/useSafeHeight.ts";
 import { ICollection } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
-
-const SafeY = 56 + 10 * 2 + 55 + 32 + 16 * 2 + 2 + 10 * 2;
 
 type ISearchParams = ISongSearchParams;
 
@@ -77,19 +83,14 @@ interface IRecord
 
 export default function Song(): ReactElement {
   const { t } = useTranslation();
+  const { message } = App.useApp();
 
   const CollectionCrudyEmitter = useMemo(
     () => NewCrudyButtonEventEmitter<ICollection>(),
     [],
   );
 
-  const safeY = useMemo(() => {
-    if (isiPhone()) {
-      return SafeY + 20;
-    }
-    return SafeY;
-  }, []);
-  const y = useSafeHeight(safeY);
+  const isMobile = useMobile();
 
   const fileRef = useRef<File | undefined>();
 
@@ -120,10 +121,11 @@ export default function Song(): ReactElement {
               className={styles.avatar}
               size={64}
               src={v}
+              shape="square"
               onClick={() => window.open(v)}
             />
           ) : (
-            <Avatar size={64} icon={<PictureOutlined />} />
+            <Avatar shape="square" size={64} icon={<PictureOutlined />} />
           );
         },
       },
@@ -151,17 +153,19 @@ export default function Song(): ReactElement {
         width: 300,
         render: (v, record) => {
           return (
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                setPlayerVisible(true);
-                setSongForPlay(record as ISongWithCollections);
-              }}
-            >
-              {record._artistName ? `${record._artistName} - ` : ""}
-              <Ellipsis length={100}>{v}</Ellipsis>
-            </Button>
+            <>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => {
+                  setPlayerVisible(true);
+                  setSongForPlay(record as ISongWithCollections);
+                }}
+              >
+                {record._artistName ? `${record._artistName} - ` : ""}
+                <Ellipsis length={100}>{v}</Ellipsis>
+              </Button>
+            </>
           );
         },
         filtered: !!searchParams["like_name"],
@@ -170,6 +174,24 @@ export default function Song(): ReactElement {
             ...old,
             like_name: value,
           })),
+        ),
+      },
+      {
+        title: "",
+        dataIndex: "-",
+        align: "center",
+        render: (_, record) => (
+          <Button
+            size="small"
+            type="link"
+            onClick={() =>
+              navigator.clipboard
+                ?.writeText(record.name)
+                ?.then(() => message.success(t("copied")))
+            }
+          >
+            <CopyOutlined />
+          </Button>
         ),
       },
       {
@@ -194,7 +216,7 @@ export default function Song(): ReactElement {
         render: asDefaultPattern,
       },
     ],
-    [searchParams, t],
+    [message, searchParams, t],
   );
 
   const handleAfterListed = useCallback(
@@ -287,20 +309,53 @@ export default function Song(): ReactElement {
   const actions = useCallback<
     Exclude<ICrudyTableProps<IRecord>["actions"], undefined>
   >(
-    (record): ReactNode => {
+    (record, _, size): ReactNode => {
       return (
         <>
           <Button
+            data-url={record._url}
+            size={size}
+            title={t("download")}
             type="link"
-            size="small"
             onClick={() => window.open(record._url)}
           >
-            {t("download")}
+            <DownloadOutlined />
           </Button>
         </>
       );
     },
     [t],
+  );
+
+  const handleCreateArtist = useCallback(
+    async (preset?: string) => {
+      const res = preset || window.prompt(t("song.artistName"));
+      if (!res) {
+        return;
+      }
+
+      const names = Array.from(
+        new Set(
+          res
+            .split(/[,，]/gi)
+            .map((i) => i.trim())
+            .filter((i) => !!i),
+        ),
+      );
+
+      const artists = await createOrGetCollectionsByArtistNames(names);
+
+      message.success(t("created"));
+
+      const existingCollections = form?.getFieldValue("_collectionIds") || [];
+      form?.setFieldValue(
+        "_collectionIds",
+        Array.from(
+          new Set([...artists.map((a) => a.id), ...existingCollections]),
+        ),
+      );
+    },
+    [form, message, t],
   );
 
   return (
@@ -315,11 +370,21 @@ export default function Song(): ReactElement {
         onSave={handleSave}
         afterSaved={handleAfterSaved}
         onFormInit={setForm}
-        scroll={{ y, x: true }}
+        scroll={{
+          y: isMobile ? "calc(100vh - 180px)" : "calc(100vh - 200px)",
+          x: true,
+        }}
         actions={actions}
-        titleExtra={
+        saveModalProps={{
+          styles: {
+            body: {
+              maxHeight: "calc(100vh - 150px)",
+              overflowY: "auto",
+            },
+          },
+        }}
+        extra={
           <>
-            <Divider type="vertical" />
             <div className={styles.windowed}>
               <CollectionCrudyButton emitter={CollectionCrudyEmitter} />
               <Divider type="vertical" />
@@ -392,7 +457,11 @@ export default function Song(): ReactElement {
               label={t("song.name")}
               rules={[{ required: true }]}
             >
-              <WordInput maxLength={200} placeholder={t("song.name")} />
+              <WordInput
+                maxLength={200}
+                placeholder={t("song.name")}
+                onTagCtrlClick={handleCreateArtist}
+              />
             </Form.Item>
             <Form.Item name="_collectionIds" label={t("collection._")}>
               <CollectionSelector mode="multiple">
@@ -400,6 +469,10 @@ export default function Song(): ReactElement {
                   onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
                 >
                   {t("gocrud.manage")}
+                </Button>
+                <Divider type="vertical" />
+                <Button type="primary" onClick={() => handleCreateArtist()}>
+                  {t("createArtistsFast")}
                 </Button>
               </CollectionSelector>
             </Form.Item>

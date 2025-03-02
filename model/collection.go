@@ -5,14 +5,22 @@ import (
 	"time"
 )
 
+type CollectionType string
+
+const (
+	CollectionTypeArtist CollectionType = "artist"
+	CollectionTypeAlbum  CollectionType = "album"
+	CollectionTypeSong   CollectionType = "playlist"
+)
+
 type Collection struct {
 	gocrud.Base
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Keywords    string `json:"keywords"`
-	Cover       string `json:"cover"`
-	Index       int32  `json:"index" gorm:"default:0"`
+	Type        CollectionType `json:"type"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Keywords    string         `json:"keywords"`
+	Cover       string         `json:"cover"`
+	Index       int32          `json:"index" gorm:"default:0"`
 }
 
 type CollectionSong struct {

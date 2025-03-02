@@ -3,7 +3,7 @@ import {
   StepBackwardOutlined,
   StepForwardOutlined,
 } from "@ant-design/icons";
-import { Button, Tooltip } from "antd";
+import { Button } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -197,31 +197,32 @@ export default function SongPlayer({
         </div>
       </div>
       <div className={styles.row}>
-        <Tooltip title={t("player.prev")}>
-          <Button
-            type="link"
-            size="large"
-            className={cls(styles.button)}
-            onClick={onPrev}
-          >
-            <StepBackwardOutlined />
-          </Button>
-        </Tooltip>
-        <Tooltip title={t("player.shuffle")}>
-          <Button
-            type="link"
-            danger={shuffle}
-            className={cls(styles.button)}
-            onClick={onShuffle}
-          >
-            <FireOutlined />
-          </Button>
-        </Tooltip>
-        <Tooltip title={t("player.next")}>
-          <Button type="link" className={cls(styles.button)} onClick={onNext}>
-            <StepForwardOutlined />
-          </Button>
-        </Tooltip>
+        <Button
+          title={t("player.prev")}
+          type="link"
+          size="large"
+          className={cls(styles.button)}
+          onClick={onPrev}
+        >
+          <StepBackwardOutlined />
+        </Button>
+        <Button
+          title={t("player.shuffle")}
+          type="link"
+          danger={shuffle}
+          className={cls(styles.button)}
+          onClick={onShuffle}
+        >
+          <FireOutlined />
+        </Button>
+        <Button
+          title={t("player.next")}
+          type="link"
+          className={cls(styles.button)}
+          onClick={onNext}
+        >
+          <StepForwardOutlined />
+        </Button>
       </div>
     </div>
   );

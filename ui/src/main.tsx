@@ -18,6 +18,9 @@ i18n
         updatedAt: "更新时间",
         continuesUpload: "持续性上传",
         keepCover: "保留封面",
+        copied: "已复制",
+        created: "已创建",
+        createArtistsFast: "快速创建艺术家",
 
         song: {
           _: "歌曲",
@@ -27,6 +30,7 @@ i18n
           mime: "MIME",
           description: "描述",
           index: "序号",
+          artistName: "艺术家名称",
         },
         collection: {
           _: "收藏",
@@ -68,6 +72,9 @@ i18n
         updatedAt: "Updated At",
         continuesUpload: "Continues Upload",
         keepCover: "Keep Cover",
+        copied: "Copied",
+        created: "Created",
+        createArtistsFast: "Create Artists",
 
         song: {
           _: "Song",
@@ -77,6 +84,7 @@ i18n
           mime: "MIME",
           description: "Description",
           index: "Index",
+          artistName: "Artist Name",
         },
         collection: {
           _: "Collection",

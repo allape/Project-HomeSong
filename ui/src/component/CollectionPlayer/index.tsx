@@ -1,4 +1,4 @@
-import { config, Flex } from "@allape/gocrud-react";
+import { config, Flex, useMobile } from "@allape/gocrud-react";
 import { useLoading, useProxy } from "@allape/use-loading";
 import {
   CloseOutlined,
@@ -10,7 +10,7 @@ import {
   ShrinkOutlined,
   StepForwardOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Card, List, Tooltip } from "antd";
+import { Avatar, Button, Card, List } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -68,12 +68,19 @@ export default function CollectionPlayer({
 
   const { loading, execute } = useLoading();
 
-  const { x, y, onMouseDown } = useDragger({
-    x: 600,
-    y: 6,
-    xOffset: -500,
-    yOffset: -200,
-  });
+  const { x, y, onMouseDown } = useDragger(
+    useCallback(
+      () => ({
+        x: window.innerWidth - 800,
+        y: 0,
+        xOffset: -500,
+        yOffset: -200,
+      }),
+      [],
+    ),
+  );
+
+  const isMobile = useMobile();
 
   const PlayerEventEmitter = useMemo(() => new SongPlayEventEmitter(), []);
 
@@ -105,6 +112,12 @@ export default function CollectionPlayer({
       clearTimeout(scrollerTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setCollapsed(false);
+    }
+  }, [isMobile]);
 
   const checkShadow = useCallback(() => {
     if (scrolledContentRef.current?.parentElement) {
@@ -265,14 +278,16 @@ export default function CollectionPlayer({
           justifyContent="flex-start"
           alignItems="center"
         >
-          <Tooltip title={song ? song._name : t("player.name")}>
-            <span className={styles.name} onClick={scrollToCurrentSong}>
-              {song ? song._name : t("player.name")}
-              {collapsed && (
-                <MiniProgressBar current={current} duration={duration} />
-              )}
-            </span>
-          </Tooltip>
+          <span
+            title={song ? song._name : t("player.name")}
+            className={styles.name}
+            onClick={scrollToCurrentSong}
+          >
+            {song ? song._name : t("player.name")}
+            {collapsed && playing && (
+              <MiniProgressBar current={current} duration={duration} />
+            )}
+          </span>
           {song && (
             <MiniControls
               playing={playing}
@@ -287,41 +302,41 @@ export default function CollectionPlayer({
       }
       extra={
         <>
-          <Tooltip title={t("player.close")}>
-            <Button type="link" danger onClick={onClose}>
-              <CloseOutlined />
-            </Button>
-          </Tooltip>
+          <Button
+            title={t("player.close")}
+            type="link"
+            danger
+            onClick={onClose}
+          >
+            <CloseOutlined />
+          </Button>
           {collapsed ? (
-            <Tooltip title={t("player.expand")}>
-              <Button
-                className={styles.windowed}
-                type="link"
-                onClick={() => setCollapsed(false)}
-              >
-                <ExpandAltOutlined />
-              </Button>
-            </Tooltip>
-          ) : (
-            <Tooltip title={t("player.collapse")}>
-              <Button
-                className={styles.windowed}
-                type="link"
-                onClick={() => setCollapsed(true)}
-              >
-                <ShrinkOutlined />
-              </Button>
-            </Tooltip>
-          )}
-          <Tooltip title={t("player.move")}>
             <Button
+              title={t("player.expand")}
               className={styles.windowed}
               type="link"
-              onMouseDown={onMouseDown}
+              onClick={() => setCollapsed(false)}
             >
-              <DragOutlined />
+              <ExpandAltOutlined />
             </Button>
-          </Tooltip>
+          ) : (
+            <Button
+              title={t("player.collapse")}
+              className={styles.windowed}
+              type="link"
+              onClick={() => setCollapsed(true)}
+            >
+              <ShrinkOutlined />
+            </Button>
+          )}
+          <Button
+            title={t("player.move")}
+            className={styles.windowed}
+            type="link"
+            onMouseDown={onMouseDown}
+          >
+            <DragOutlined />
+          </Button>
         </>
       }
     >
@@ -402,25 +417,23 @@ function MiniControls({
   const { t } = useTranslation();
   return (
     <>
-      <Tooltip title={playing ? t("player.pause") : t("player.prev")}>
-        <Button
-          className={cls(styles.button, collapsed ? undefined : styles.mobile)}
-          type="link"
-          danger={playing}
-          onClick={onToggle}
-        >
-          {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
-        </Button>
-      </Tooltip>
-      <Tooltip title={t("player.next")}>
-        <Button
-          className={cls(styles.button, collapsed ? undefined : styles.mobile)}
-          type="link"
-          onClick={onNext}
-        >
-          <StepForwardOutlined />
-        </Button>
-      </Tooltip>
+      <Button
+        title={playing ? t("player.pause") : t("player.prev")}
+        className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+        type="link"
+        danger={playing}
+        onClick={onToggle}
+      >
+        {playing ? <PauseCircleFilled /> : <PlayCircleOutlined />}
+      </Button>
+      <Button
+        title={t("player.next")}
+        className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+        type="link"
+        onClick={onNext}
+      >
+        <StepForwardOutlined />
+      </Button>
     </>
   );
 }

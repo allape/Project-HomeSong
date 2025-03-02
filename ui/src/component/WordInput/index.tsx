@@ -1,15 +1,23 @@
 import { Input, InputProps, Tag } from "antd";
-import { ReactElement, useEffect, useState } from "react";
+import {
+  MouseEvent,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 export interface IWordInputProps
   extends Omit<InputProps, "value" | "onChange"> {
   value?: string;
   onChange?: (value?: string) => void;
+  onTagCtrlClick?: (value: string) => void;
 }
 
 export default function WordInput({
   value,
   onChange,
+  onTagCtrlClick,
   ...props
 }: IWordInputProps): ReactElement {
   const [words, setWords] = useState<string[]>([]);
@@ -34,6 +42,18 @@ export default function WordInput({
     });
   }, [value]);
 
+  const handleClick = useCallback(
+    (e: MouseEvent<HTMLSpanElement>, word: string) => {
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault();
+        onTagCtrlClick?.(word);
+      } else {
+        onChange?.(word);
+      }
+    },
+    [onChange, onTagCtrlClick],
+  );
+
   return (
     <>
       <Input
@@ -45,7 +65,7 @@ export default function WordInput({
         {words.map((word) => (
           <Tag
             key={word}
-            onClick={() => onChange?.(word)}
+            onClick={(e) => handleClick(e, word)}
             style={{ cursor: "pointer" }}
           >
             {word}

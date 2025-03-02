@@ -31,7 +31,7 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 			"orderBy_updatedAt": gocrud.SortBy("updated_at"),
 			"collectionId": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
 				if ok, value := gocrud.ValuableArray(values); ok {
-					id := gocrud.Pick(gocrud.IDsFromCommaSplitString(value), 0, 0)
+					id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(value), 0, 0)
 					if id == 0 {
 						return db
 					}
@@ -186,7 +186,7 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 	})
 
 	group.GET("/hotwire/:id", func(context *gin.Context) {
-		id := gocrud.Pick(gocrud.IDsFromCommaSplitString(context.Param("id")), 0, 0)
+		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
 		if id == 0 {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
 			return

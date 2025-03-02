@@ -6,11 +6,13 @@ import {
   Ellipsis,
   searchable,
   Uploader,
+  useMobile,
 } from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
 import { PictureOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Avatar,
+  AvatarProps,
   Form,
   Input,
   InputNumber,
@@ -36,6 +38,8 @@ export default function CollectionCrudyButton(
   props: ICollectionCrudyButtonProps,
 ): ReactElement {
   const { t } = useTranslation();
+
+  const isMobile = useMobile();
 
   const types = useCollectionTypes();
 
@@ -86,21 +90,23 @@ export default function CollectionCrudyButton(
         dataIndex: "cover",
         width: 100,
         align: "center",
-        render: (v, record) =>
-          v ? (
-            <Avatar size={64} src={`${config.SERVER_STATIC_URL}${v}`} />
+        render: (v, record) => {
+          const shape: AvatarProps["shape"] =
+            record.type === "artist" ? "circle" : "square";
+          return v ? (
+            <Avatar
+              size={64}
+              shape={shape}
+              src={`${config.SERVER_STATIC_URL}${v}`}
+            />
           ) : (
             <Avatar
               size={64}
-              icon={
-                record.type === "artist" ? (
-                  <UserOutlined />
-                ) : (
-                  <PictureOutlined />
-                )
-              }
+              shape={shape}
+              icon={shape === "circle" ? <UserOutlined /> : <PictureOutlined />}
             />
-          ),
+          );
+        },
       },
       {
         title: t("collection.name"),
@@ -144,6 +150,10 @@ export default function CollectionCrudyButton(
       columns={columns}
       crudy={CollectionCrudy}
       searchParams={searchParams}
+      scroll={{
+        y: isMobile ? "calc(100vh - 200px)" : "calc(100vh - 260px)",
+        x: true,
+      }}
       {...props}
     >
       <Form.Item name="cover" label={t("collection.cover")}>

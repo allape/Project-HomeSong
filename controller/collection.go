@@ -32,7 +32,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		WillSave: func(record *model.Collection, context *gin.Context, db *gorm.DB) {
 			record.Name = strings.TrimSpace(record.Name)
 			record.Keywords = strings.TrimSpace(record.Keywords)
-			record.Type = strings.TrimSpace(record.Type)
+			record.Type = model.CollectionType(strings.TrimSpace(string(record.Type)))
 
 			if record.Type == "" {
 				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "type is required")
@@ -50,9 +50,44 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		return err
 	}
 
+	// may require a lock
+	group.PUT("/create-or-get/by-artist-names/:names", func(context *gin.Context) {
+		names := gocrud.StringArrayFromCommaSeparatedString(context.Param("names"))
+		if len(names) == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "names not found")
+			return
+		}
+
+		var exists []model.Collection
+		if err := db.Model(&exists).Where("type = 'artist' AND name IN ?", names).Find(&exists).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+	out:
+		for _, name := range names {
+			for _, exist := range exists {
+				if exist.Name == name {
+					continue out
+				}
+			}
+
+			var artist = model.Collection{Type: model.CollectionTypeArtist, Name: name}
+
+			if err := db.Model(&artist).Create(&artist).Error; err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				return
+			}
+
+			exists = append(exists, artist)
+		}
+
+		context.JSON(http.StatusOK, gocrud.R[[]model.Collection]{Code: gocrud.RestCoder.OK(), Data: exists})
+	})
+
 	// inefficient
 	group.GET("/random/:collectionId", func(context *gin.Context) {
-		collectionId := gocrud.Pick(gocrud.IDsFromCommaSplitString(context.Param("collectionId")), 0, 0)
+		collectionId := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("collectionId")), 0, 0)
 
 		var song model.Song
 
@@ -66,6 +101,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 				"id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id = ?) AND songs.deleted_at IS NULL",
 				collectionId,
 			).Order("rand() DESC").First(&song).Error; err != nil {
+				// just return error when this collection is empty
 				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
 				return
 			}
@@ -93,13 +129,13 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 
 	// ?collectionIds=
 	collectionSongGroup.PUT("/save-by-song/:songId", func(context *gin.Context) {
-		songId := gocrud.Pick[gocrud.ID](gocrud.IDsFromCommaSplitString(context.Param("songId")), 0, 0)
+		songId := gocrud.Pick[gocrud.ID](gocrud.IDsFromCommaSeparatedString(context.Param("songId")), 0, 0)
 		if songId == 0 {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "songId not found")
 			return
 		}
 
-		collectionIds := gocrud.IDsFromCommaSplitString(context.Query("collectionIds"))
+		collectionIds := gocrud.IDsFromCommaSeparatedString(context.Query("collectionIds"))
 
 		var song model.Song
 		if err := db.Model(&song).First(&song, songId).Error; err != nil {
