@@ -96,14 +96,8 @@ export default function SongPlayer({
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: song.name,
-      artist: song._collections
-        .filter((c) => c.type === "artist")
-        .map((c) => c.name)
-        .join(", "),
-      album: song._collections
-        .filter((c) => c.type === "album")
-        .map((c) => c.name)
-        .join(", "),
+      artist: song._artistName,
+      album: song._nonartistName,
       artwork: song._cover
         ? [
             {

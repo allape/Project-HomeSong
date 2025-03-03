@@ -4,6 +4,7 @@ import {
   config,
   CrudyTable,
   Ellipsis,
+  Flex,
   ICrudyTableProps,
   searchable,
   Uploader,
@@ -20,7 +21,6 @@ import {
   App,
   Avatar,
   Button,
-  Col,
   Divider,
   Dropdown,
   Form,
@@ -28,9 +28,9 @@ import {
   Input,
   InputNumber,
   MenuProps,
-  Row,
   Switch,
   TableColumnsType,
+  Tooltip,
 } from "antd";
 import cls from "classnames";
 import {
@@ -79,6 +79,7 @@ interface IRecord
 
   _url?: string;
   _cover?: string;
+  _name?: string;
 }
 
 export default function Song(): ReactElement {
@@ -108,13 +109,12 @@ export default function Song(): ReactElement {
     () => [
       {
         title: t("id"),
-        width: 50,
+        width: 100,
         dataIndex: "id",
       },
       {
         title: t("song.cover"),
         dataIndex: "_cover",
-        width: 100,
         render: (v) => {
           return v ? (
             <Avatar
@@ -132,8 +132,7 @@ export default function Song(): ReactElement {
       {
         title: t("collection._"),
         dataIndex: "_nonartistName",
-        width: 300,
-        render: (v) => <Ellipsis>{v}</Ellipsis>,
+        ellipsis: { showTitle: true },
         filtered: !!searchParams["collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
           t("song.name"),
@@ -150,24 +149,21 @@ export default function Song(): ReactElement {
       {
         title: t("song.name"),
         dataIndex: "name",
-        width: 300,
-        render: (v, record) => {
-          return (
-            <>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => {
-                  setPlayerVisible(true);
-                  setSongForPlay(record as ISongWithCollections);
-                }}
-              >
-                {record._artistName ? `${record._artistName} - ` : ""}
-                <Ellipsis length={100}>{v}</Ellipsis>
-              </Button>
-            </>
-          );
-        },
+        ellipsis: { showTitle: true },
+        render: (_, record) => (
+          <Tooltip title={record._name}>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                setPlayerVisible(true);
+                setSongForPlay(record as ISongWithCollections);
+              }}
+            >
+              {record._name}
+            </Button>
+          </Tooltip>
+        ),
         filtered: !!searchParams["like_name"],
         ...searchable(t("song.name"), (value) =>
           setSearchParams((old) => ({
@@ -180,6 +176,7 @@ export default function Song(): ReactElement {
         title: "",
         dataIndex: "-",
         align: "center",
+        width: 50,
         render: (_, record) => (
           <Button
             size="small"
@@ -222,20 +219,29 @@ export default function Song(): ReactElement {
   const handleAfterListed = useCallback(
     async (records: IRecord[]): Promise<IRecord[]> => {
       const swcs = await fillSongsWithCollections(records);
-      return swcs.map<IRecord>((s) => ({
-        ...s,
-        _url: s.filename
-          ? `${config.SERVER_STATIC_URL}${s.filename}`
-          : undefined,
-        _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
-        _collectionIds: s._collections.map((c) => c.id),
-        _artistNames: s._collections
+      return swcs.map<IRecord>((s) => {
+        const artistNames = s._collections
           .filter((c) => c.type === "artist")
-          .map((c) => c.name),
-        _nonartistNames: s._collections
-          .filter((c) => c.type !== "artist")
-          .map((c) => c.name),
-      }));
+          .map((c) => c.name);
+
+        return {
+          ...s,
+
+          _url: s.filename
+            ? `${config.SERVER_STATIC_URL}${s.filename}`
+            : undefined,
+          _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
+
+          _collectionIds: s._collections.map((c) => c.id),
+
+          _artistNames: artistNames,
+          _nonartistNames: s._collections
+            .filter((c) => c.type !== "artist")
+            .map((c) => c.name),
+
+          _name: `${artistNames ? `${artistNames} - ` : ""}${s.name}`,
+        };
+      });
     },
     [],
   );
@@ -309,7 +315,7 @@ export default function Song(): ReactElement {
   const actions = useCallback<
     Exclude<ICrudyTableProps<IRecord>["actions"], undefined>
   >(
-    (record, _, size): ReactNode => {
+    ({ record, size }): ReactNode => {
       return (
         <>
           <Button
@@ -358,6 +364,26 @@ export default function Song(): ReactElement {
     [form, message, t],
   );
 
+  const scroll = useMemo<ICrudyTableProps["scroll"]>(
+    () => ({
+      y: isMobile ? "calc(100dvh - 160px)" : "calc(100dvh - 200px)",
+      x: true,
+    }),
+    [isMobile],
+  );
+
+  const saveModalProps = useMemo<ICrudyTableProps["saveModalProps"]>(
+    () => ({
+      styles: {
+        body: {
+          maxHeight: isMobile ? "calc(100dvh - 120px)" : "calc(100dvh - 150px)",
+          overflowY: "auto",
+        },
+      },
+    }),
+    [isMobile],
+  );
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -370,19 +396,9 @@ export default function Song(): ReactElement {
         onSave={handleSave}
         afterSaved={handleAfterSaved}
         onFormInit={setForm}
-        scroll={{
-          y: isMobile ? "calc(100vh - 180px)" : "calc(100vh - 200px)",
-          x: true,
-        }}
+        scroll={scroll}
         actions={actions}
-        saveModalProps={{
-          styles: {
-            body: {
-              maxHeight: "calc(100vh - 150px)",
-              overflowY: "auto",
-            },
-          },
-        }}
+        saveModalProps={saveModalProps}
         extra={
           <>
             <div className={styles.windowed}>
@@ -404,18 +420,18 @@ export default function Song(): ReactElement {
       >
         {(record) => (
           <>
-            <Row gutter={10}>
-              <Col span={12}>
-                <Form.Item name="_continuesUpload" label={t("continuesUpload")}>
-                  <Switch />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="_keepCover" label={t("keepCover")}>
-                  <Switch />
-                </Form.Item>
-              </Col>
-            </Row>
+            <Flex alignItems="center" justifyContent="flex-start">
+              <Form.Item
+                noStyle
+                name="_continuesUpload"
+                label={t("continuesUpload")}
+              >
+                {t("continuesUpload")}: <Switch />
+              </Form.Item>
+              <Form.Item noStyle name="_keepCover">
+                {t("keepCover")}: <Switch />
+              </Form.Item>
+            </Flex>
             <Divider plain />
             <Form.Item name="filename" noStyle hidden>
               <Input />

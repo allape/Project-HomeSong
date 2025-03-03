@@ -53,12 +53,12 @@ export default function CollectionCrudyButton(
       {
         title: t("id"),
         dataIndex: "id",
-        width: 50,
+        width: 100,
       },
       {
         title: t("collection.index"),
         dataIndex: "index",
-        width: 100,
+        ellipsis: true,
       },
       {
         title: t("collection.type"),
@@ -151,7 +151,7 @@ export default function CollectionCrudyButton(
       crudy={CollectionCrudy}
       searchParams={searchParams}
       scroll={{
-        y: isMobile ? "calc(100vh - 200px)" : "calc(100vh - 260px)",
+        y: isMobile ? "calc(100dvh - 200px)" : "calc(100dvh - 260px)",
         x: true,
       }}
       {...props}

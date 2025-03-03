@@ -11,17 +11,6 @@
     }
   }
 
-  & > :global(.ant-card-head) {
-    position: sticky;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    background-color: white;
-    @media (prefers-color-scheme: dark) {
-      background-color: #333;
-    }
-  }
-
   & > :global(.ant-card-body) {
     padding: 10px;
   }

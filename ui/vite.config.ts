@@ -6,4 +6,7 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), GoCrudVitePlugin(), viteSingleFile()],
+  server: {
+    host: '0.0.0.0'
+  },
 });

@@ -84,7 +84,8 @@ export default function CollectionPlayer({
 
   const PlayerEventEmitter = useMemo(() => new SongPlayEventEmitter(), []);
 
-  const scrolledContentRef = useRef<HTMLDivElement | null>(null);
+  const [scrollContent, scrollContentRef, setScrollContent] =
+    useProxy<HTMLDivElement | null>(null);
   const collectionSongsRef = useRef<ISong["id"][]>([]);
   const currentRef = useRef<PageNumber>(1);
   const lastScrolledTime = useRef<number>(0);
@@ -120,11 +121,25 @@ export default function CollectionPlayer({
   }, [isMobile]);
 
   const checkShadow = useCallback(() => {
-    if (scrolledContentRef.current?.parentElement) {
-      setShadow(scrolledContentRef.current.parentElement.scrollTop !== 0);
+    if (scrollContentRef.current?.parentElement) {
+      setShadow(scrollContentRef.current.parentElement.scrollTop !== 0);
     }
     lastScrolledTime.current = performance.now();
-  }, []);
+  }, [scrollContentRef]);
+
+  useEffect(() => {
+    const parent = scrollContent?.parentElement;
+    if (!parent) {
+      return;
+    }
+    const handleScroll = () => {
+      checkShadow();
+    };
+    parent.addEventListener("scroll", handleScroll);
+    return () => {
+      parent.removeEventListener("scroll", handleScroll);
+    };
+  }, [checkShadow, scrollContent]);
 
   const scrollToCurrentSong = useCallback(() => {
     document
@@ -340,11 +355,7 @@ export default function CollectionPlayer({
         </>
       }
     >
-      <div
-        ref={scrolledContentRef}
-        className={styles.player}
-        onWheel={checkShadow}
-      >
+      <div ref={setScrollContent} className={styles.player}>
         <div className={styles.header}>
           <CollectionSelector
             loading={loading}
