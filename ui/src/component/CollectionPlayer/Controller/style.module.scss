@@ -1,10 +1,15 @@
 @use "../../../style/mobile";
 
 .wrapper {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-wrap: nowrap;
+
   .button {
     margin: 10px;
     transition: 0.25s;
-    padding: 20px 40px;
+    padding: 20px;
 
     &:hover {
       scale: 1.05;
