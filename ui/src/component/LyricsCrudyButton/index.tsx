@@ -43,6 +43,11 @@ export default function LyricsCrudyButton(
         ellipsis: true,
       },
       {
+        title: t("lyrics.offset"),
+        dataIndex: "offset",
+        ellipsis: true,
+      },
+      {
         title: t("lyrics.name"),
         dataIndex: "name",
         filtered: !!searchParams["like_name"],
@@ -96,6 +101,15 @@ export default function LyricsCrudyButton(
           step={1}
           precision={0}
           placeholder={t("lyrics.index")}
+        />
+      </Form.Item>
+      <Form.Item name="offset" label={t("lyrics.offset")}>
+        <InputNumber
+          min={-1_000_000}
+          max={1_000_000}
+          step={1}
+          precision={0}
+          placeholder={t("lyrics.offset")}
         />
       </Form.Item>
       <Form.Item

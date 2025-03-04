@@ -51,6 +51,7 @@ i18n
           name: "名称",
           content: ".lrc",
           index: "序号",
+          offset: "偏移",
           description: "描述",
         },
         player: {
@@ -116,6 +117,7 @@ i18n
           name: "Name",
           content: ".lrc",
           index: "Index",
+          offset: "Offset",
           description: "Description",
         },
         player: {
