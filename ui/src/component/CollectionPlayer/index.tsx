@@ -37,9 +37,11 @@ import {
 } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import CollectionSelector from "../CollectionSelector";
+import Controller from "./Controller";
+import Karaoke from "./Karaoke";
 import { IModifiedSong } from "./model.ts";
-import SongPlayer from "./SongPlayer";
-import SongPlayEventEmitter from "./SongPlayer/eventemitter.ts";
+import Player from "./Player";
+import PlayerEventEmitter from "./Player/eventemitter.ts";
 import styles from "./style.module.scss";
 
 type PageNumber = number;
@@ -68,7 +70,7 @@ export default function CollectionPlayer({
 
   const { loading, execute } = useLoading();
 
-  const { x, y, onMouseDown } = useDragger(
+  const { x, y, OnDraggerStart } = useDragger(
     useCallback(
       () => ({
         x: window.innerWidth - 800,
@@ -82,7 +84,7 @@ export default function CollectionPlayer({
 
   const isMobile = useMobile();
 
-  const PlayerEventEmitter = useMemo(() => new SongPlayEventEmitter(), []);
+  const PEE = useMemo(() => new PlayerEventEmitter(), []);
 
   const [scrollContent, scrollContentRef, setScrollContent] =
     useProxy<HTMLDivElement | null>(null);
@@ -91,6 +93,7 @@ export default function CollectionPlayer({
   const lastScrolledTime = useRef<number>(0);
   const scrollerTimerRef = useRef<number>(-1);
 
+  const [view, setView] = useState<"lyrics" | "list">("list");
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [shadow, setShadow] = useState<boolean>(false);
 
@@ -103,7 +106,7 @@ export default function CollectionPlayer({
     undefined,
   );
 
-  const [current, setCurrent] = useState<number>(0);
+  const [current, _setCurrent] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
@@ -283,6 +286,13 @@ export default function CollectionPlayer({
     }
   }, [handleNext, playingRef, setShuffle]);
 
+  const setCurrent = useCallback(
+    (c: number) => {
+      PEE.dispatchEvent("seek", c);
+    },
+    [PEE],
+  );
+
   return (
     <Card
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
@@ -307,9 +317,7 @@ export default function CollectionPlayer({
             <MiniControls
               playing={playing}
               collapsed={collapsed}
-              onToggle={() =>
-                PlayerEventEmitter.dispatchEvent(playing ? "pause" : "play")
-              }
+              onToggle={() => PEE.dispatchEvent(playing ? "pause" : "play")}
               onNext={handleNext}
             />
           )}
@@ -348,7 +356,8 @@ export default function CollectionPlayer({
             title={t("player.move")}
             className={styles.windowed}
             type="link"
-            onMouseDown={onMouseDown}
+            onMouseDown={OnDraggerStart}
+            onTouchStart={OnDraggerStart}
           >
             <DragOutlined />
           </Button>
@@ -356,59 +365,78 @@ export default function CollectionPlayer({
       }
     >
       <div ref={setScrollContent} className={styles.player}>
-        <div className={styles.header}>
+        <div className={cls(styles.header, shadow && styles.shadow)}>
           <CollectionSelector
             loading={loading}
             value={collection}
             onChange={handleChange}
             allowClear
           ></CollectionSelector>
-          <SongPlayer
-            shadow={shadow}
-            shuffle={shuffle}
+          <Player
             song={song}
-            emitter={PlayerEventEmitter}
+            emitter={PEE}
             onChange={setPlaying}
             onNext={handleNext}
             onPrev={handlePrev}
-            onShuffle={handleShuffle}
-            onCurrentChange={setCurrent}
+            onCurrentChange={_setCurrent}
             onDurationChange={setDuration}
           />
-        </div>
-        <div className={styles.list}>
-          <List<IModifiedSong>
-            itemLayout="horizontal"
-            size="small"
-            dataSource={songs}
-            renderItem={(item) => (
-              <List.Item
-                key={item.id}
-                data-id={`song-${item.id}`}
-                onClick={() => setSong(item)}
-                className={cls(
-                  styles.song,
-                  song?.id === item.id && styles.playing,
-                )}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <Avatar
-                      className={styles.avatar}
-                      size={64}
-                      src={item._cover}
-                      icon={item._cover ? undefined : <PictureOutlined />}
-                    />
-                  }
-                  title={<div className={styles.name}>{item._name}</div>}
-                  description={item._nonartistName || "-"}
-                />
-              </List.Item>
-            )}
+          <Controller
+            view={view}
+            onViewChange={setView}
+            shuffle={shuffle}
+            onShuffle={handleShuffle}
+            onNext={handleNext}
+            onPrev={handlePrev}
           />
         </div>
+        {view === "list" && (
+          <SongList song={song} songs={songs} onChange={setSong} />
+        )}
+        {view === "lyrics" && (
+          <Karaoke current={current} song={song} onChange={setCurrent} />
+        )}
       </div>
     </Card>
+  );
+}
+
+interface ISongListProps {
+  song?: IModifiedSong;
+  songs: IModifiedSong[];
+  onChange?: (song: IModifiedSong) => void;
+}
+
+function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
+  return (
+    <div className={styles.list}>
+      <List<IModifiedSong>
+        itemLayout="horizontal"
+        size="small"
+        dataSource={songs}
+        renderItem={(item) => (
+          <List.Item
+            key={item.id}
+            data-id={`song-${item.id}`}
+            onClick={() => onChange?.(item)}
+            className={cls(styles.song, song?.id === item.id && styles.playing)}
+          >
+            <List.Item.Meta
+              avatar={
+                <Avatar
+                  className={styles.avatar}
+                  size={64}
+                  src={item._cover}
+                  icon={item._cover ? undefined : <PictureOutlined />}
+                />
+              }
+              title={<div className={styles.name}>{item._name}</div>}
+              description={item._nonartistName || "-"}
+            />
+          </List.Item>
+        )}
+      />
+    </div>
   );
 }
 

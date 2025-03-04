@@ -1,0 +1,38 @@
+.wrapper {
+  .placeholder {
+    height: 40dvh;
+  }
+
+  .loadingText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 20px;
+  }
+
+  .lines {
+    padding: 0 10px;
+
+    .line {
+      text-align: center;
+      white-space: pre-wrap;
+      word-break: break-all;
+      padding: 10px 0;
+      font-size: 28px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: 0.25s;
+      user-select: none;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      &.current {
+        font-weight: bold;
+        opacity: 1;
+      }
+    }
+  }
+}

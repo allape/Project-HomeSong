@@ -1,0 +1,21 @@
+@use "../../../style/mobile";
+
+.wrapper {
+  .button {
+    margin: 10px;
+    transition: 0.25s;
+    padding: 20px 40px;
+
+    &:hover {
+      scale: 1.05;
+    }
+
+    &:active {
+      scale: 2;
+    }
+
+    & > :global(.anticon) {
+      scale: 2;
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { IBase, IBaseSearchParams } from "@allape/gocrud";
 import { ICollection } from "./collection.ts";
+import { ILyrics } from "./lyrics.ts";
 
 export interface ISong extends IBase {
   name: string;
@@ -19,4 +20,10 @@ export interface ISongSearchParams extends IBaseSearchParams {
   orderBy_index?: "desc" | "asc";
   orderBy_createdAt?: "desc" | "asc";
   orderBy_updatedAt?: "desc" | "asc";
+}
+
+export interface ISongLyrics {
+  songId: ISong["id"];
+  lyricsId: ILyrics["id"];
+  createdAt: string;
 }

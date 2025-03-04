@@ -13,6 +13,7 @@ import {
 import NewCrudyButtonEventEmitter from "@allape/gocrud-react/src/component/CrudyButton/eventemitter.ts";
 import {
   CopyOutlined,
+  CustomerServiceOutlined,
   DownloadOutlined,
   MoreOutlined,
   PictureOutlined,
@@ -49,15 +50,20 @@ import {
 } from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
+  getLyrics,
   ISongWithCollections,
+  saveLyricsBySong,
   SongCrudy,
   upload,
 } from "../../api/song.ts";
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
+import LyricsCrudyButton from "../../component/LyricsCrudyButton";
+import LyricsSelector from "../../component/LyricsSelector";
 import WordInput from "../../component/WordInput";
 import { ICollection } from "../../model/collection.ts";
+import { ILyrics } from "../../model/lyrics.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
 
@@ -76,6 +82,7 @@ interface IRecord
 
   _file?: File;
   _collectionIds?: ICollection["id"][];
+  _lyricsIds?: ILyrics["id"][];
 
   _url?: string;
   _cover?: string;
@@ -88,6 +95,10 @@ export default function Song(): ReactElement {
 
   const CollectionCrudyEmitter = useMemo(
     () => NewCrudyButtonEventEmitter<ICollection>(),
+    [],
+  );
+  const LyricsCrudyEmitter = useMemo(
+    () => NewCrudyButtonEventEmitter<ILyrics>(),
     [],
   );
 
@@ -253,6 +264,8 @@ export default function Song(): ReactElement {
 
     await saveCollectionSongsBySong(song.id, record._collectionIds || []);
 
+    await saveLyricsBySong(song.id, record._lyricsIds || []);
+
     return song;
   }, []);
 
@@ -281,6 +294,13 @@ export default function Song(): ReactElement {
         },
       },
       {
+        key: "Lyrics",
+        label: t("lyrics._"),
+        onClick: () => {
+          LyricsCrudyEmitter.dispatchEvent("open");
+        },
+      },
+      {
         key: "Player",
         label: t("player.name"),
         onClick: () => {
@@ -288,8 +308,20 @@ export default function Song(): ReactElement {
         },
       },
     ],
-    [CollectionCrudyEmitter, t],
+    [CollectionCrudyEmitter, LyricsCrudyEmitter, t],
   );
+
+  const handleBeforeEdit = useCallback<
+    Exclude<ICrudyTableProps<IRecord>["beforeEdit"], undefined>
+  >(async (record?: IRecord): Promise<IRecord | undefined> => {
+    if (!record) {
+      return record;
+    }
+
+    record._lyricsIds =
+      (await getLyrics(record.id)).map((i) => i.lyricsId) || [];
+    return record;
+  }, []);
 
   const handleAfterSaved = useCallback<
     Exclude<ICrudyTableProps<IRecord>["afterSaved"], undefined>
@@ -394,6 +426,7 @@ export default function Song(): ReactElement {
         searchParams={searchParams}
         afterListed={handleAfterListed}
         onSave={handleSave}
+        beforeEdit={handleBeforeEdit}
         afterSaved={handleAfterSaved}
         onFormInit={setForm}
         scroll={scroll}
@@ -402,10 +435,16 @@ export default function Song(): ReactElement {
         extra={
           <>
             <div className={styles.windowed}>
+              <LyricsCrudyButton emitter={LyricsCrudyEmitter} />
+              <Divider type="vertical" />
               <CollectionCrudyButton emitter={CollectionCrudyEmitter} />
               <Divider type="vertical" />
-              <Button type="primary" onClick={() => setPlayerVisible(true)}>
-                {t("player.name")}
+              <Button
+                type="primary"
+                title={t("player.name")}
+                onClick={() => setPlayerVisible(true)}
+              >
+                <CustomerServiceOutlined />
               </Button>
             </div>
             <div className={styles.mobile}>
@@ -421,15 +460,17 @@ export default function Song(): ReactElement {
         {(record) => (
           <>
             <Flex alignItems="center" justifyContent="flex-start">
+              {t("continuesUpload")}:{" "}
               <Form.Item
                 noStyle
                 name="_continuesUpload"
                 label={t("continuesUpload")}
               >
-                {t("continuesUpload")}: <Switch />
+                <Switch />
               </Form.Item>
+              {t("keepCover")}:{" "}
               <Form.Item noStyle name="_keepCover">
-                {t("keepCover")}: <Switch />
+                <Switch />
               </Form.Item>
             </Flex>
             <Divider plain />
@@ -485,12 +526,23 @@ export default function Song(): ReactElement {
                   onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
                 >
                   {t("gocrud.manage")}
+                  {t("collection._")}
                 </Button>
                 <Divider type="vertical" />
                 <Button type="primary" onClick={() => handleCreateArtist()}>
                   {t("createArtistsFast")}
                 </Button>
               </CollectionSelector>
+            </Form.Item>
+            <Form.Item name="_lyricsIds" label={t("lyrics._")}>
+              <LyricsSelector mode="multiple">
+                <Button
+                  onClick={() => LyricsCrudyEmitter.dispatchEvent("open")}
+                >
+                  {t("gocrud.manage")}
+                  {t("lyrics._")}
+                </Button>
+              </LyricsSelector>
             </Form.Item>
             <Form.Item name="description" label={t("song.description")}>
               <Input.TextArea

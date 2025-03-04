@@ -1,10 +1,4 @@
-import {
-  FireOutlined,
-  StepBackwardOutlined,
-  StepForwardOutlined,
-} from "@ant-design/icons";
-import { Button } from "antd";
-import cls from "classnames";
+import { EEEventListener } from "@allape/gocrud-react/src/helper/eventemitter.ts";
 import {
   ReactElement,
   SyntheticEvent,
@@ -12,38 +6,29 @@ import {
   useEffect,
   useRef,
 } from "react";
-import { useTranslation } from "react-i18next";
 import { IModifiedSong } from "../model.ts";
-import SongPlayEventEmitter from "./eventemitter.ts";
+import PlayerEventEmitter from "./eventemitter.ts";
 import styles from "./style.module.scss";
 
-export interface ISongPlayerProps {
-  shadow?: boolean;
-  shuffle?: boolean;
+export interface IPlayerProps {
   song?: IModifiedSong;
-  emitter?: SongPlayEventEmitter;
+  emitter?: PlayerEventEmitter;
   onNext?: () => void;
   onPrev?: () => void;
-  onShuffle?: () => void;
   onChange?: (playing: boolean) => void;
   onDurationChange?: (duration: number) => void;
   onCurrentChange?: (current: number) => void;
 }
 
-export default function SongPlayer({
-  shadow,
-  shuffle,
+export default function Player({
   song,
   emitter,
   onPrev,
   onNext,
-  onShuffle,
   onChange,
   onDurationChange,
   onCurrentChange,
-}: ISongPlayerProps): ReactElement {
-  const { t } = useTranslation();
-
+}: IPlayerProps): ReactElement {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -162,61 +147,41 @@ export default function SongPlayer({
         audioRef.current.currentTime = 0;
       }
     };
+
+    const handleSeek: EEEventListener = (time) => {
+      if (!audioRef.current) {
+        return;
+      }
+      audioRef.current.currentTime = time.value as number;
+    };
+
     emitter.addEventListener("play", handlePlay);
     emitter.addEventListener("pause", handlePause);
     emitter.addEventListener("stop", handleStop);
+    emitter.addEventListener("seek", handleSeek);
     return () => {
       emitter.removeEventListener("play", handlePlay);
       emitter.removeEventListener("pause", handlePause);
       emitter.removeEventListener("stop", handleStop);
+      emitter.removeEventListener("seek", handleSeek);
     };
   }, [emitter]);
 
   return (
-    <div className={cls(styles.wrapper, shadow && styles.shadow)}>
-      <div className={styles.row}>
-        <div className={styles.audio}>
-          <audio
-            autoPlay
-            controls
-            ref={audioRef}
-            // key={song?.id}
-            src={song?._url}
-            className={styles.audio}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onEnded={handleEnded}
-            onTimeUpdate={handleChange}
-          />
-        </div>
-      </div>
-      <div className={styles.row}>
-        <Button
-          title={t("player.prev")}
-          type="link"
-          size="large"
-          className={cls(styles.button)}
-          onClick={onPrev}
-        >
-          <StepBackwardOutlined />
-        </Button>
-        <Button
-          title={t("player.shuffle")}
-          type="link"
-          danger={shuffle}
-          className={cls(styles.button)}
-          onClick={onShuffle}
-        >
-          <FireOutlined />
-        </Button>
-        <Button
-          title={t("player.next")}
-          type="link"
-          className={cls(styles.button)}
-          onClick={onNext}
-        >
-          <StepForwardOutlined />
-        </Button>
+    <div className={styles.wrapper}>
+      <div className={styles.audio}>
+        <audio
+          autoPlay
+          controls
+          ref={audioRef}
+          // key={song?.id}
+          src={song?._url}
+          className={styles.audio}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onEnded={handleEnded}
+          onTimeUpdate={handleChange}
+        />
       </div>
     </div>
   );

@@ -1,0 +1,19 @@
+@use "../../../style/mobile";
+
+.wrapper {
+  padding: 10px 0;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+  align-items: center;
+
+  @include mobile.Mobile;
+
+  .audio {
+    flex: 1;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: stretch;
+    align-items: stretch;
+  }
+}

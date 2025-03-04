@@ -1,5 +1,6 @@
 import {
   MouseEvent as RME,
+  TouchEvent as RTM,
   useCallback,
   useEffect,
   useRef,
@@ -8,12 +9,12 @@ import {
 
 export type X = number;
 export type Y = number;
-export type OnMouseDown = (e: RME<HTMLElement>) => void;
+export type OnDraggerStart = (e: RME<HTMLElement> | RTM<HTMLElement>) => void;
 
 export type Dragger = {
   x: X;
   y: Y;
-  onMouseDown: OnMouseDown;
+  OnDraggerStart: OnDraggerStart;
 };
 
 export interface IOptions {
@@ -43,10 +44,10 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
   const [x, setX] = useState<X>(() => xFP || 0);
   const [y, setY] = useState<Y>(() => yFP || 0);
 
-  const onMouseDown: OnMouseDown = useCallback((e) => {
+  const onMouseDown: OnDraggerStart = useCallback((e) => {
     isDraggingRef.current = true;
-    xRef.current = e.clientX;
-    yRef.current = e.clientY;
+    xRef.current = "clientX" in e ? e.clientX : e.touches[0].clientX;
+    yRef.current = "clientY" in e ? e.clientY : e.touches[0].clientY;
   }, []);
 
   useEffect(() => {
@@ -72,12 +73,15 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
       });
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const x = "clientX" in e ? e.clientX : e.touches[0].clientX;
+      const y = "clientY" in e ? e.clientY : e.touches[0].clientY;
+
       if (isDraggingRef.current) {
-        const xDelta = e.clientX - xRef.current;
-        const yDelta = e.clientY - yRef.current;
-        xRef.current = e.clientX;
-        yRef.current = e.clientY;
+        const xDelta = x - xRef.current;
+        const yDelta = y - yRef.current;
+        xRef.current = x;
+        yRef.current = y;
         setX((x) => {
           const newX = x + xDelta;
           if (newX < 0 || newX > window.innerWidth + xo) {
@@ -95,16 +99,24 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
       }
     };
 
-    const handleMouseUp = () => {
+    const handleEnd = () => {
       isDraggingRef.current = false;
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+
+    window.addEventListener("touchmove", handleMove);
+    window.addEventListener("touchend", handleEnd);
+
     window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
+
       window.removeEventListener("resize", handleResize);
     };
   }, [xOffset, yOffset]);
@@ -112,6 +124,6 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
   return {
     x,
     y,
-    onMouseDown,
+    OnDraggerStart: onMouseDown,
   };
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/allape/gocrud"
+	"time"
 )
 
 type Song struct {
@@ -14,4 +15,10 @@ type Song struct {
 	FFProbeInfo string `json:"ffprobeInfo"`
 	Description string `json:"description"`
 	Index       int32  `json:"index" gorm:"default:0"`
+}
+
+type SongLyrics struct {
+	SongID    gocrud.ID `json:"songId"`
+	LyricsID  gocrud.ID `json:"lyricsId"`
+	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime;<-:create"`
 }

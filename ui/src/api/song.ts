@@ -4,7 +4,8 @@ import {
   ICollectionSearchParams,
   ICollectionSongSearchParams,
 } from "../model/collection.ts";
-import { ISong } from "../model/song.ts";
+import { ILyrics } from "../model/lyrics.ts";
+import { ISong, ISongLyrics } from "../model/song.ts";
 import { CollectionCrudy, CollectionSongCrudy } from "./collection.ts";
 
 export const SongCrudy = new Crudy<ISong>(`${config.SERVER_URL}/song`);
@@ -75,4 +76,24 @@ export async function fillSongsWithCollections(
         .join(", "),
     };
   });
+}
+
+export function getLyrics(id: ISong["id"]): Promise<ISongLyrics[]> {
+  return get(`${config.SERVER_URL}/song/lyrics/${id}`);
+}
+
+export function saveLyricsBySong(
+  songId: ISong["id"],
+  lyrics: ILyrics["id"][],
+): Promise<ISongLyrics[]> {
+  return get(
+    `${config.SERVER_URL}/song/lyrics/${songId}?lyricsIds=${encodeURIComponent(lyrics.join(","))}`,
+    {
+      method: "PUT",
+    },
+  );
+}
+
+export function getLyrics0(id: ISong["id"]): Promise<ILyrics | null> {
+  return get(`${config.SERVER_URL}/song/lyrics-0/${id}`);
 }

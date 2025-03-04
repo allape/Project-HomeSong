@@ -213,5 +213,88 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		}
 	})
 
+	// ?lyricsIds=1,2,3
+	group.PUT("/lyrics/:id", func(context *gin.Context) {
+		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
+		lyricsIds := gocrud.IDsFromCommaSeparatedString(context.Query("lyricsIds"))
+
+		if id == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
+			return
+		}
+
+		var lyricsArr []model.Lyrics
+		if err := db.Model(&lyricsArr).Where("id IN ?", lyricsIds).Find(&lyricsArr).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		songLyrics := make([]model.SongLyrics, len(lyricsIds))
+		for i, lyricsId := range lyricsIds {
+			songLyrics[i] = model.SongLyrics{
+				SongID:   id,
+				LyricsID: lyricsId,
+			}
+		}
+
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Model(&model.SongLyrics{}).Delete("song_id = ?", id).Error; err != nil {
+				return err
+			}
+
+			if len(lyricsIds) == 0 {
+				return nil
+			}
+
+			if err := tx.Model(&model.SongLyrics{}).Save(songLyrics).Error; err != nil {
+				return err
+			}
+
+			return nil
+		}); err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		context.JSON(http.StatusOK, gocrud.R[[]model.SongLyrics]{Code: gocrud.RestCoder.OK(), Data: songLyrics})
+	})
+
+	group.GET("/lyrics/:id", func(context *gin.Context) {
+		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
+		if id == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
+			return
+		}
+
+		var songLyrics []model.SongLyrics
+		if err := db.Model(&songLyrics).Where("song_id = ?", id).Find(&songLyrics).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+			return
+		}
+
+		context.JSON(http.StatusOK, gocrud.R[[]model.SongLyrics]{Code: gocrud.RestCoder.OK(), Data: songLyrics})
+	})
+
+	group.GET("/lyrics-0/:id", func(context *gin.Context) {
+		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
+		if id == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
+			return
+		}
+
+		var lyrics model.Lyrics
+
+		// ignore error
+		db.Model(&lyrics).Where(
+			"id IN (SELECT song_lyrics.lyrics_id FROM song_lyrics WHERE song_lyrics.song_id = ?)",
+			id,
+		).Order("`index` ASC").Order("`updated_at` DESC").First(&lyrics)
+
+		context.JSON(http.StatusOK, gocrud.R[*model.Lyrics]{
+			Code: gocrud.RestCoder.OK(),
+			Data: gocrud.Ternary[*model.Lyrics](lyrics.ID == 0, nil, &lyrics),
+		})
+	})
+
 	return nil
 }
