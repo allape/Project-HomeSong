@@ -1,8 +1,10 @@
 import {
   AudioOutlined,
   FireOutlined,
+  RetweetOutlined,
   StepBackwardOutlined,
   StepForwardOutlined,
+  StopOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
 import { Button } from "antd";
@@ -12,10 +14,12 @@ import styles from "./style.module.scss";
 
 export type ViewType = "lyrics" | "list";
 
+export type LoopType = "shuffle" | "list" | "no";
+
 export interface IControllerProps {
   view?: ViewType;
-  shuffle?: boolean;
-  onShuffle?: () => void;
+  loop?: LoopType;
+  onLoopChange?: (lt: LoopType) => void;
   onNext?: () => void;
   onPrev?: () => void;
   onViewChange?: (view: ViewType) => void;
@@ -23,8 +27,8 @@ export interface IControllerProps {
 
 export default function Controller({
   view,
-  shuffle,
-  onShuffle,
+  loop,
+  onLoopChange,
   onPrev,
   onNext,
   onViewChange,
@@ -62,15 +66,38 @@ export default function Controller({
           <AudioOutlined />
         </Button>
       )}
-      <Button
-        title={t("player.shuffle")}
-        type="link"
-        danger={shuffle}
-        className={styles.button}
-        onClick={onShuffle}
-      >
-        <FireOutlined />
-      </Button>
+      {loop === "shuffle" && (
+        <Button
+          title={t("player.loopType.shuffle")}
+          type="link"
+          danger
+          className={styles.button}
+          onClick={() => onLoopChange?.("list")}
+        >
+          <FireOutlined />
+        </Button>
+      )}
+      {loop === "list" && (
+        <Button
+          title={t("player.loopType.list")}
+          type="link"
+          danger
+          className={styles.button}
+          onClick={() => onLoopChange?.("no")}
+        >
+          <RetweetOutlined />
+        </Button>
+      )}
+      {loop === "no" && (
+        <Button
+          title={t("player.loopType.no")}
+          type="link"
+          className={styles.button}
+          onClick={() => onLoopChange?.("shuffle")}
+        >
+          <StopOutlined />
+        </Button>
+      )}
       <Button
         title={t("player.next")}
         type="link"

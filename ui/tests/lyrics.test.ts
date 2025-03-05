@@ -1,6 +1,8 @@
 import Lyrics from '../src/helper/lyrics';
 
-// https://guoyunhe.github.io/rabbit-lyrics
+/**
+ * @see https://guoyunhe.github.io/rabbit-lyrics
+ */
 const Example = `
 [00:00.00] 谁のことを考えてるの?
 [00:03.10] ハートのスペース争夺戦
@@ -10,23 +12,35 @@ const Example = `
 [00:16.73] アイツの心に 居场所がないんだ
 `;
 
+/**
+ * @see https://en.wikipedia.org/wiki/LRC_(file_format)
+ */
+const ExampleLRC = `
+[00:12.00]Line 1 lyrics
+[00:17.20]Line 2 lyrics
+
+[00:21.10][00:45.10]Repeating lyrics (e.g. chorus)
+...
+[mm:ss.xx]Last lyrics line
+`
+
 describe("test lyrics", () => {
   test("mmssSSSS", async () => {
-    expect(Lyrics.mmssSSSS("[01]")).toBe(60_000);
-    expect(Lyrics.mmssSSSS("[02:]")).toBe(120_000);
-    expect(Lyrics.mmssSSSS("[03:00]")).toBe(180_000);
-    expect(Lyrics.mmssSSSS("[03:01]")).toBe(181_000);
-    expect(Lyrics.mmssSSSS("[03:02.]")).toBe(182_000);
-    expect(Lyrics.mmssSSSS("[03:03.3]")).toBe(183_300);
-    expect(Lyrics.mmssSSSS("[04:03.321]")).toBe(243_321);
-    expect(Lyrics.mmssSSSS("5")).toBe(300_000);
-    expect(Lyrics.mmssSSSS("5:1")).toBe(301_000);
-    expect(Lyrics.mmssSSSS("5:1.111")).toBe(301_111);
+    expect(Lyrics.fromStringTimePoint("[01]")).toBe(60_000);
+    expect(Lyrics.fromStringTimePoint("[02:]")).toBe(120_000);
+    expect(Lyrics.fromStringTimePoint("[03:00]")).toBe(180_000);
+    expect(Lyrics.fromStringTimePoint("[03:01]")).toBe(181_000);
+    expect(Lyrics.fromStringTimePoint("[03:02.]")).toBe(182_000);
+    expect(Lyrics.fromStringTimePoint("[03:03.3]")).toBe(183_300);
+    expect(Lyrics.fromStringTimePoint("[04:03.321]")).toBe(243_321);
+    expect(Lyrics.fromStringTimePoint("5")).toBe(300_000);
+    expect(Lyrics.fromStringTimePoint("5:1")).toBe(301_000);
+    expect(Lyrics.fromStringTimePoint("5:1.111")).toBe(301_111);
 
-    expect(Lyrics.mmssSSSS("6:abc")).toBe(0);
-    expect(Lyrics.mmssSSSS("7:abc:123:abc")).toBe(0);
-    expect(Lyrics.mmssSSSS("[05:00.abc]")).toBe(0);
-    expect(Lyrics.mmssSSSS("abc")).toBe(0);
+    expect(Lyrics.fromStringTimePoint("6:abc")).toBe(0);
+    expect(Lyrics.fromStringTimePoint("7:abc:123:abc")).toBe(0);
+    expect(Lyrics.fromStringTimePoint("[05:00.abc]")).toBe(0);
+    expect(Lyrics.fromStringTimePoint("abc")).toBe(0);
   });
 
   test("parse", () => {
@@ -68,5 +82,19 @@ describe("test lyrics", () => {
     expect(l.getLineIndexByTimePoint(-999)).toBe(-1);
     expect(l.getLineIndexByTimePoint(999_999_999)).toBe(5);
   });
+
+  test("parseLRC", () => {
+    const l1 = Lyrics.parseStandardLRC(ExampleLRC);
+
+    expect(l1.lines.length).toBe(4)
+    expect(l1.lines[0][0]).toBe(12_000);
+    expect(l1.lines[3][0]).toBe(45_100);
+
+    expect(l1.getLineIndexByTimePoint(13_000)).toBe(0);
+    expect(l1.getLineIndexByTimePoint(18_000)).toBe(1);
+    expect(l1.getLineIndexByTimePoint(22_000)).toBe(2);
+    expect(l1.getLineIndexByTimePoint(46_000)).toBe(3);
+    expect(l1.getLineIndexByTimePoint(50_000)).toBe(3);
+  })
 });
 

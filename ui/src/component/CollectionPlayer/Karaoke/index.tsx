@@ -26,6 +26,8 @@ export default function Karaoke({
   const { loading, execute } = useLoading();
 
   const lastInteractTime = useRef<number>(0);
+  const lastScrollIntoTime = useRef<number>(0);
+
   const lyricsRef = useRef<ILyrics | null>(null);
 
   const [index, setIndex] = useState<number>(-1);
@@ -66,11 +68,18 @@ export default function Karaoke({
 
     setIndex(index);
 
-    if (performance.now() - lastInteractTime.current > 1000) {
-      container.querySelector(`[data-lyrics=index-${index}]`)?.scrollIntoView({
-        block: "center",
-        behavior: "smooth",
-      });
+    if (
+      performance.now() - lastInteractTime.current > 1000 &&
+      performance.now() - lastScrollIntoTime.current > 200
+    ) {
+      const line = container.querySelector(`[data-lyrics=index-${index}]`);
+      if (line) {
+        line.scrollIntoView({
+          block: "center",
+          behavior: "smooth",
+        });
+        lastScrollIntoTime.current = performance.now();
+      }
     }
   }, [container, current, lyrics]);
 

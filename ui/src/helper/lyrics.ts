@@ -25,6 +25,46 @@ export default class Lyrics {
     );
   }
 
+  public toString(): string {
+    return this.lines
+      .map((line) =>
+        line[2]
+          .map((syllable) => {
+            const [st, et, word] = syllable;
+            return `${Lyrics.toStringTimePoint(st)}${word}${et > 0 ? `${Lyrics.toStringTimePoint(et)}` : ""}`;
+          })
+          .join(""),
+      )
+      .join("\n");
+  }
+
+  /**
+   * Parse standard LRC format
+   * @see https://en.wikipedia.org/wiki/LRC_(file_format)
+   * @param text standard LRC format text
+   */
+  public static parseStandardLRC(text: string): Lyrics {
+    if (!text?.trim()) return new Lyrics();
+    const lines = text.split("\n").map((i) => i.trim());
+
+    const formatted: string[] = [];
+
+    lines.forEach((line) => {
+      if (!line.trim()) return;
+      const [, tps, words] = line.match(/((?:\[\d+:\d+\.\d+]\s*)+)(.+)/) || [];
+      if (tps) {
+        const timePoints = tps
+          .split("]")
+          .map((i) => i.trim())
+          .filter((i) => !!i)
+          .map((i) => `${i}]`);
+        formatted.push(...timePoints.map((tp) => `${tp}${words}`));
+      }
+    });
+
+    return this.parse(formatted.join("\n"));
+  }
+
   /**
    * https://en.wikipedia.org/wiki/LRC_(file_format)
    * @param text LRC format text with word by word timestamp
@@ -97,7 +137,7 @@ export default class Lyrics {
 
       line = line.substring(full.length);
 
-      const stp = this.mmssSSSS(st);
+      const stp = this.fromStringTimePoint(st);
       if (isNaN(stp)) {
         continue;
       }
@@ -122,7 +162,7 @@ export default class Lyrics {
   /**
    * [mm:ss.SS(SS)?] to millisecond
    */
-  public static mmssSSSS(time: string): TimePoint {
+  public static fromStringTimePoint(time: string): TimePoint {
     if (!time) return 0;
 
     const [, m, s] = time.match(/^\[?(\d+):?(\d+(?:\.\d*)?)?]?$/) || [];
@@ -137,5 +177,15 @@ export default class Lyrics {
     }
 
     return tp;
+  }
+
+  /**
+   * {@link TimePoint} to [mm:ss.SS]
+   * @param tp
+   */
+  public static toStringTimePoint(tp: TimePoint): string {
+    const m = Math.floor(tp / 60_000);
+    const s = (tp % 60_000) / 1000;
+    return `[${`${m}`.padStart(2, "0")}:${s.toFixed(2).padStart(5, "0")}]`;
   }
 }

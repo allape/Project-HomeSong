@@ -37,7 +37,7 @@ import {
 } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
 import CollectionSelector from "../CollectionSelector";
-import Controller from "./Controller";
+import Controller, { LoopType } from "./Controller";
 import Karaoke from "./Karaoke";
 import { IModifiedSong } from "./model.ts";
 import Player from "./Player";
@@ -109,7 +109,7 @@ export default function CollectionPlayer({
   const [current, _setCurrent] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
-  const [shuffle, shuffleRef, setShuffle] = useProxy<boolean>(false);
+  const [loop, loopRef, setLoop] = useProxy<LoopType>("list");
 
   useEffect(() => {
     return () => {
@@ -229,46 +229,51 @@ export default function CollectionPlayer({
 
   const handleChangeSong = useCallback(
     (delta: number) => {
-      if (shuffleRef.current) {
-        execute(async () => {
-          const song = await getRandomSongInCollection(
-            collectionRef.current || 0,
-          );
-          let index = songsRef.current.findIndex((s) => s.id === song.id);
-          if (songRef.current?.id === song.id) {
-            index += 1;
-            if (index >= songsRef.current.length) {
-              index = 0;
+      switch (loopRef.current) {
+        case "shuffle":
+          execute(async () => {
+            const song = await getRandomSongInCollection(
+              collectionRef.current || 0,
+            );
+            let index = songsRef.current.findIndex((s) => s.id === song.id);
+            if (songRef.current?.id === song.id) {
+              index += 1;
+              if (index >= songsRef.current.length) {
+                index = 0;
+              }
             }
+            const nextSong = songsRef.current[index];
+            setSong(nextSong);
+          }).then();
+          return;
+        case "no":
+          return;
+        case "list":
+        default: {
+          if (!songRef.current) {
+            setSong(songsRef.current[0]);
+            return;
           }
-          const nextSong = songsRef.current[index];
-          setSong(nextSong);
-        }).then();
-        return;
-      }
 
-      if (!songRef.current) {
-        setSong(songsRef.current[0]);
-        return;
-      }
+          const current = songsRef.current.findIndex(
+            (s) => s.id === songRef.current!.id,
+          );
+          if (current === -1) {
+            setSong(songsRef.current[0]);
+          }
 
-      const current = songsRef.current.findIndex(
-        (s) => s.id === songRef.current!.id,
-      );
-      if (current === -1) {
-        setSong(songsRef.current[0]);
-      }
-
-      const next = current + delta;
-      if (next < 0) {
-        setSong(songsRef.current[songsRef.current.length - 1]);
-      } else if (next >= songsRef.current.length) {
-        setSong(songsRef.current[0]);
-      } else {
-        setSong(songsRef.current[next]);
+          const next = current + delta;
+          if (next < 0) {
+            setSong(songsRef.current[songsRef.current.length - 1]);
+          } else if (next >= songsRef.current.length) {
+            setSong(songsRef.current[0]);
+          } else {
+            setSong(songsRef.current[next]);
+          }
+        }
       }
     },
-    [collectionRef, execute, setSong, shuffleRef, songRef, songsRef],
+    [collectionRef, execute, loopRef, setSong, songRef, songsRef],
   );
 
   const handlePrev = useCallback(() => {
@@ -279,12 +284,15 @@ export default function CollectionPlayer({
     handleChangeSong(1);
   }, [handleChangeSong]);
 
-  const handleShuffle = useCallback(() => {
-    setShuffle((v) => !v);
-    if (!playingRef.current) {
-      handleNext();
-    }
-  }, [handleNext, playingRef, setShuffle]);
+  const handleLoopChange = useCallback(
+    (lt: LoopType) => {
+      setLoop(lt);
+      if (!playingRef.current) {
+        handleNext();
+      }
+    },
+    [handleNext, playingRef, setLoop],
+  );
 
   const setCurrent = useCallback(
     (c: number) => {
@@ -309,7 +317,7 @@ export default function CollectionPlayer({
             onClick={scrollToCurrentSong}
           >
             {song ? song._name : t("player.name")}
-            {collapsed && playing && (
+            {collapsed && playing && !isMobile && (
               <MiniProgressBar current={current} duration={duration} />
             )}
           </span>
@@ -384,8 +392,8 @@ export default function CollectionPlayer({
           <Controller
             view={view}
             onViewChange={setView}
-            shuffle={shuffle}
-            onShuffle={handleShuffle}
+            loop={loop}
+            onLoopChange={handleLoopChange}
             onNext={handleNext}
             onPrev={handlePrev}
           />
