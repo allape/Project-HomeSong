@@ -266,33 +266,19 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 			return
 		}
 
-		var songLyrics []model.SongLyrics
-		if err := db.Model(&songLyrics).Where("song_id = ?", id).Find(&songLyrics).Error; err != nil {
+		var lyricsArr []model.Lyrics
+
+		if err := db.Model(&lyricsArr).Where(
+			"id IN (SELECT song_lyrics.lyrics_id FROM song_lyrics WHERE song_lyrics.song_id = ?)",
+			id,
+		).Order("`index` ASC").Order("`updated_at` DESC").Find(&lyricsArr).Error; err != nil {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
 			return
 		}
 
-		context.JSON(http.StatusOK, gocrud.R[[]model.SongLyrics]{Code: gocrud.RestCoder.OK(), Data: songLyrics})
-	})
-
-	group.GET("/lyrics-0/:id", func(context *gin.Context) {
-		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
-		if id == 0 {
-			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
-			return
-		}
-
-		var lyrics model.Lyrics
-
-		// ignore error
-		db.Model(&lyrics).Where(
-			"id IN (SELECT song_lyrics.lyrics_id FROM song_lyrics WHERE song_lyrics.song_id = ?)",
-			id,
-		).Order("`index` ASC").Order("`updated_at` DESC").First(&lyrics)
-
-		context.JSON(http.StatusOK, gocrud.R[*model.Lyrics]{
+		context.JSON(http.StatusOK, gocrud.R[[]model.Lyrics]{
 			Code: gocrud.RestCoder.OK(),
-			Data: gocrud.Ternary[*model.Lyrics](lyrics.ID == 0, nil, &lyrics),
+			Data: lyricsArr,
 		})
 	})
 

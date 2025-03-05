@@ -78,7 +78,7 @@ export async function fillSongsWithCollections(
   });
 }
 
-export function getLyrics(id: ISong["id"]): Promise<ISongLyrics[]> {
+export function getLyrics(id: ISong["id"]): Promise<ILyrics[]> {
   return get(`${config.SERVER_URL}/song/lyrics/${id}`);
 }
 
@@ -92,8 +92,4 @@ export function saveLyricsBySong(
       method: "PUT",
     },
   );
-}
-
-export function getLyrics0(id: ISong["id"]): Promise<ILyrics | null> {
-  return get(`${config.SERVER_URL}/song/lyrics-0/${id}`);
 }

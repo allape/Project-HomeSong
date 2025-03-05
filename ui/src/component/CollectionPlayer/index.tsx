@@ -36,7 +36,9 @@ import {
   ICollectionSongSearchParams,
 } from "../../model/collection.ts";
 import { ISong, ISongSearchParams } from "../../model/song.ts";
-import CollectionSelector from "../CollectionSelector";
+import CollectionSelector, {
+  ICollectionSelectorProps,
+} from "../CollectionSelector";
 import Controller, { LoopType } from "./Controller";
 import Karaoke from "./Karaoke";
 import { IModifiedSong } from "./model.ts";
@@ -188,10 +190,6 @@ export default function CollectionPlayer({
   }, [execute, setSongs]);
 
   useEffect(() => {
-    handleNextPage().then();
-  }, [handleNextPage]);
-
-  useEffect(() => {
     if (!songFromProps) {
       return;
     }
@@ -205,7 +203,7 @@ export default function CollectionPlayer({
     });
   }, [setSong, setSongs, songFromProps]);
 
-  const handleChange = useCallback(
+  const handleCollectionChange = useCallback(
     async (id?: ICollection["id"]) => {
       if (!id) {
         collectionSongsRef.current = [];
@@ -301,6 +299,23 @@ export default function CollectionPlayer({
     [PEE],
   );
 
+  const loadedRef = useRef(false);
+
+  const handleCollectionsLoaded = useCallback<
+    Exclude<ICollectionSelectorProps["onLoaded"], undefined>
+  >(
+    (records: ICollection[]) => {
+      if (loadedRef.current) {
+        return;
+      }
+
+      loadedRef.current = true;
+
+      handleCollectionChange(records[0]?.id).then();
+    },
+    [handleCollectionChange],
+  );
+
   return (
     <Card
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
@@ -377,8 +392,9 @@ export default function CollectionPlayer({
           <CollectionSelector
             loading={loading}
             value={collection}
-            onChange={handleChange}
+            onChange={handleCollectionChange}
             allowClear
+            onLoaded={handleCollectionsLoaded}
           ></CollectionSelector>
           <Player
             song={song}

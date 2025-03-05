@@ -1,10 +1,11 @@
-import { useLoading } from "@allape/use-loading";
+import { ILV } from "@allape/gocrud-react";
+import { useLoading, useProxy } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
-import { Empty } from "antd";
+import { Empty, Select } from "antd";
 import cls from "classnames";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getLyrics0 } from "../../../api/song.ts";
+import { getLyrics } from "../../../api/song.ts";
 import Lyrics from "../../../helper/lyrics.ts";
 import { ILyrics } from "../../../model/lyrics.ts";
 import { ISong } from "../../../model/song.ts";
@@ -14,6 +15,10 @@ export interface IKaraokeProps {
   current: number;
   song?: ISong;
   onChange?: (tp: number) => void;
+}
+
+export interface IModifiedLyrics extends ILyrics {
+  value?: ILyrics["id"];
 }
 
 export default function Karaoke({
@@ -28,39 +33,64 @@ export default function Karaoke({
   const lastInteractTime = useRef<number>(0);
   const lastScrollIntoTime = useRef<number>(0);
 
-  const lyricsRef = useRef<ILyrics | null>(null);
-
   const [index, setIndex] = useState<number>(-1);
   const [container, setContainer] = useState<HTMLElement | null>(null);
-  const [lyrics, setLyrics] = useState<Lyrics | undefined>(undefined);
+
+  const [lyricsDriver, setLyricsDriver] = useState<Lyrics | null>(null);
+
+  const [currentLyrics, currentLyricsRef, setCurrentLyrics] = useProxy<
+    ILyrics | undefined
+  >(undefined);
+
+  const allLyrics = useRef<ILyrics[]>([]);
+  const [options, setOptions] = useState<ILV<ILyrics["id"]>[]>([]);
+
+  const handleChange = useCallback(
+    (id: ILyrics["id"]) => {
+      setCurrentLyrics(allLyrics.current.find((i) => i.id === id));
+    },
+    [setCurrentLyrics],
+  );
 
   useEffect(() => {
-    lyricsRef.current = null;
-    setLyrics(undefined);
+    setLyricsDriver(null);
+    setCurrentLyrics(undefined);
 
     if (!song) {
       return;
     }
 
     execute(async () => {
-      const l = await getLyrics0(song.id);
-      if (!l) {
+      const ls: IModifiedLyrics[] = await getLyrics(song.id);
+
+      if (!ls[0]) {
         return;
       }
 
-      lyricsRef.current = l;
+      allLyrics.current = ls;
 
-      setLyrics(Lyrics.parse(l.content));
+      setOptions(
+        ls.map((i) => ({ value: i.id, label: `${t("lyrics._")} - ${i.name}` })),
+      );
+      setCurrentLyrics(ls[0]);
     }).then();
-  }, [execute, song]);
+  }, [execute, song, currentLyricsRef, setCurrentLyrics, t]);
 
   useEffect(() => {
-    if (!lyrics || !container) {
+    if (!currentLyrics?.content) {
+      setLyricsDriver(null);
+      return;
+    }
+    setLyricsDriver(Lyrics.parse(currentLyrics.content));
+  }, [currentLyrics]);
+
+  useEffect(() => {
+    if (!lyricsDriver || !container) {
       return;
     }
 
-    const index = lyrics.getLineIndexByTimePoint(
-      current * 1000 + (lyricsRef.current?.offset || 0),
+    const index = lyricsDriver.getLineIndexByTimePoint(
+      current * 1000 + (currentLyricsRef.current?.offset || 0),
     );
     if (index === -1) {
       return;
@@ -81,7 +111,7 @@ export default function Karaoke({
         lastScrollIntoTime.current = performance.now();
       }
     }
-  }, [container, current, lyrics]);
+  }, [container, current, currentLyricsRef, lyricsDriver]);
 
   const handleInteracted = useCallback(() => {
     lastInteractTime.current = performance.now();
@@ -102,10 +132,10 @@ export default function Karaoke({
         </div>
       )}
       <div className={styles.lines}>
-        {!loading && !lyrics?.lines?.length ? (
+        {!loading && !lyricsDriver?.lines?.length ? (
           <Empty description={t("player.noLyrics")} />
         ) : undefined}
-        {lyrics?.lines.map((l, i) => (
+        {lyricsDriver?.lines.map((l, i) => (
           <div
             key={i}
             className={cls(styles.line, index === i && styles.current)}
@@ -117,6 +147,13 @@ export default function Karaoke({
         ))}
       </div>
       <div className={styles.placeholder}></div>
+      <Select<ILyrics["id"]>
+        className={styles.selector}
+        value={currentLyrics?.id}
+        options={options}
+        onChange={handleChange}
+        placeholder={t("lyrics._")}
+      />
     </div>
   );
 }

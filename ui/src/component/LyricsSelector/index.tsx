@@ -1,16 +1,23 @@
 import { BaseSearchParams } from "@allape/gocrud";
-import { PagedCrudySelector } from "@allape/gocrud-react";
-import { ICrudySelectorProps } from "@allape/gocrud-react/src/component/CrudySelector";
+import {
+  CrudySelector,
+  type ICrudySelectorProps,
+  PagedCrudySelector,
+} from "@allape/gocrud-react";
 import { PropsWithChildren, ReactElement, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { LyricsCrudy } from "../../api/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
 
-export type LyricsSelectorProps = Partial<ICrudySelectorProps<ILyrics>>;
+export interface ILyricsSelectorProps
+  extends Partial<ICrudySelectorProps<ILyrics>> {
+  all?: boolean;
+}
 
-export default function LyricsSelector(
-  props: PropsWithChildren<LyricsSelectorProps>,
-): ReactElement {
+export default function LyricsSelector({
+  all,
+  ...props
+}: PropsWithChildren<ILyricsSelectorProps>): ReactElement {
   const { t } = useTranslation();
 
   const sp = useMemo<ILyricsSearchParams>(
@@ -21,7 +28,14 @@ export default function LyricsSelector(
     [],
   );
 
-  return (
+  return all ? (
+    <CrudySelector<ILyrics, ILyricsSearchParams>
+      placeholder={`${t("select")} ${t("lyrics._")}`}
+      {...props}
+      crudy={LyricsCrudy}
+      searchParams={sp}
+    />
+  ) : (
     <PagedCrudySelector<ILyrics, ILyricsSearchParams>
       placeholder={`${t("select")} ${t("lyrics._")}`}
       {...props}

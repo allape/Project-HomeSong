@@ -318,8 +318,7 @@ export default function Song(): ReactElement {
       return record;
     }
 
-    record._lyricsIds =
-      (await getLyrics(record.id)).map((i) => i.lyricsId) || [];
+    record._lyricsIds = (await getLyrics(record.id)).map((i) => i.id) || [];
     return record;
   }, []);
 
