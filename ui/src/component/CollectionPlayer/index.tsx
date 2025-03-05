@@ -109,7 +109,7 @@ export default function CollectionPlayer({
   const [current, _setCurrent] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
-  const [loop, loopRef, setLoop] = useProxy<LoopType>("list");
+  const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
 
   useEffect(() => {
     return () => {
