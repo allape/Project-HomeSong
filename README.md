@@ -1,15 +1,24 @@
 # Home Song
 
 Song Management for Home NAS.  
-And the default UI is not designed for "to client" usage, more ERP style. 
+And the default UI is not designed for "to client" usage, more ERP style.
 Client usages should be integrated with some authentication system.
 
 ### Dev
 
 ```shell
-npm install
+go run .
+```
+
+```shell
+cd ui
+npm i
 npm run dev
 ```
+
+### Build
+
+See [Dockerfile](Dockerfile)
 
 # Credits
 
