@@ -140,7 +140,9 @@ export default function Karaoke({
             key={i}
             className={cls(styles.line, index === i && styles.current)}
             data-lyrics={`index-${i}`}
-            onClick={() => onChange?.(l[0] / 1000)}
+            onClick={() =>
+              onChange?.(l[0] / 1000 + (currentLyrics?.offset || 0))
+            }
           >
             {l[2].map((i) => i[2]).join("")}
           </div>
