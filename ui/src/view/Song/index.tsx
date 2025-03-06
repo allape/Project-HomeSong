@@ -12,7 +12,6 @@ import {
 } from "@allape/gocrud-react";
 import NewCrudyButtonEventEmitter from "@allape/gocrud-react/src/component/CrudyButton/eventemitter.ts";
 import {
-  CopyOutlined,
   CustomerServiceOutlined,
   DownloadOutlined,
   MoreOutlined,
@@ -59,6 +58,7 @@ import {
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
 import CollectionPlayer from "../../component/CollectionPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
+import CopyButton from "../../component/CopyButton";
 import LyricsCrudyButton from "../../component/LyricsCrudyButton";
 import LyricsSelector from "../../component/LyricsSelector";
 import WordInput from "../../component/WordInput";
@@ -162,18 +162,21 @@ export default function Song(): ReactElement {
         dataIndex: "name",
         ellipsis: { showTitle: true },
         render: (_, record) => (
-          <Tooltip title={record._name}>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                setPlayerVisible(true);
-                setSongForPlay(record as ISongWithCollections);
-              }}
-            >
-              {record._name}
-            </Button>
-          </Tooltip>
+          <Flex justifyContent="flex-start">
+            <Tooltip title={record._name}>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => {
+                  setPlayerVisible(true);
+                  setSongForPlay(record as ISongWithCollections);
+                }}
+              >
+                {record._name}
+              </Button>
+            </Tooltip>
+            <CopyButton value={record._name} />
+          </Flex>
         ),
         filtered: !!searchParams["like_name"],
         ...searchable(t("song.name"), (value) =>
@@ -181,25 +184,6 @@ export default function Song(): ReactElement {
             ...old,
             like_name: value,
           })),
-        ),
-      },
-      {
-        title: "",
-        dataIndex: "-",
-        align: "center",
-        width: 50,
-        render: (_, record) => (
-          <Button
-            size="small"
-            type="link"
-            onClick={() =>
-              navigator.clipboard
-                ?.writeText(record.name)
-                ?.then(() => message.success(t("copied")))
-            }
-          >
-            <CopyOutlined />
-          </Button>
         ),
       },
       {
@@ -224,7 +208,7 @@ export default function Song(): ReactElement {
         render: asDefaultPattern,
       },
     ],
-    [message, searchParams, t],
+    [searchParams, t],
   );
 
   const handleAfterListed = useCallback(
@@ -415,6 +399,10 @@ export default function Song(): ReactElement {
     [isMobile],
   );
 
+  const handleCopyFilename = useCallback(() => {
+    return form?.getFieldValue("_file") || "";
+  }, [form]);
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -487,7 +475,13 @@ export default function Song(): ReactElement {
             </Form.Item>
             <Form.Item
               name="_file"
-              label={t("song._")}
+              label={
+                <Flex justifyContent="flex-start">
+                  <span>{t("song._")}</span>
+                  <Divider type="vertical" />
+                  <CopyButton value={handleCopyFilename} />
+                </Flex>
+              }
               rules={[{ required: !record?.id }]}
             >
               <Input

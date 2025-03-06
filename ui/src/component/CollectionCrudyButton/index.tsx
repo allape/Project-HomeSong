@@ -9,7 +9,7 @@ import {
   useMobile,
 } from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
-import { PictureOutlined, UserOutlined } from "@ant-design/icons";
+import { CopyOutlined, PictureOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Avatar,
   AvatarProps,
@@ -28,6 +28,7 @@ import {
   ICollectionSearchParams,
   useCollectionTypes,
 } from "../../model/collection.ts";
+import CopyButton from "../CopyButton";
 
 type IRecord = ICollection;
 type ISearchParams = ICollectionSearchParams;
@@ -113,7 +114,9 @@ export default function CollectionCrudyButton(
         dataIndex: "name",
         render: (v, r) => (
           <div>
-            <div>{v}</div>
+            <CopyButton value={v}>
+              {v} <CopyOutlined />
+            </CopyButton>
             <div>{r.keywords}</div>
           </div>
         ),

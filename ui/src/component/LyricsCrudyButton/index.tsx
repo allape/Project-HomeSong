@@ -7,6 +7,7 @@ import {
   useMobile,
 } from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
+import { CopyOutlined } from "@ant-design/icons";
 import {
   Button,
   Divider,
@@ -21,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { LyricsCrudy } from "../../api/lyrics.ts";
 import Lyrics from "../../helper/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
+import CopyButton from "../CopyButton";
 
 type IRecord = ILyrics;
 type ISearchParams = ILyricsSearchParams;
@@ -60,6 +62,11 @@ export default function LyricsCrudyButton(
       {
         title: t("lyrics.name"),
         dataIndex: "name",
+        render: (v) => (
+          <CopyButton value={v}>
+            {v} <CopyOutlined />
+          </CopyButton>
+        ),
         filtered: !!searchParams["like_name"],
         ...searchable(t("lyrics.name"), (value) =>
           setSearchParams((old) => ({
