@@ -1,11 +1,6 @@
 import { EEEventListener } from "@allape/gocrud-react/src/helper/eventemitter.ts";
-import {
-  ReactElement,
-  SyntheticEvent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import { useProxy } from "@allape/use-loading";
+import { ReactElement, SyntheticEvent, useCallback, useEffect } from "react";
 import { IModifiedSong } from "../model.ts";
 import PlayerEventEmitter from "./eventemitter.ts";
 import styles from "./style.module.scss";
@@ -18,6 +13,7 @@ export interface IPlayerProps {
   onChange?: (playing: boolean) => void;
   onDurationChange?: (duration: number) => void;
   onCurrentChange?: (current: number) => void;
+  onAudioOk?: (audio: HTMLAudioElement | null) => void;
 }
 
 export default function Player({
@@ -28,8 +24,13 @@ export default function Player({
   onChange,
   onDurationChange,
   onCurrentChange,
+  onAudioOk,
 }: IPlayerProps): ReactElement {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audio, audioRef, setAudio] = useProxy<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    onAudioOk?.(audio);
+  }, [audio, onAudioOk]);
 
   useEffect(() => {
     const handlePlay = () => {
@@ -165,7 +166,7 @@ export default function Player({
       emitter.removeEventListener("stop", handleStop);
       emitter.removeEventListener("seek", handleSeek);
     };
-  }, [emitter]);
+  }, [audioRef, emitter]);
 
   return (
     <div className={styles.wrapper}>
@@ -173,7 +174,7 @@ export default function Player({
         <audio
           autoPlay
           controls
-          ref={audioRef}
+          ref={setAudio}
           // key={song?.id}
           src={song?._url}
           className={styles.audio}

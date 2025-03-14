@@ -7,6 +7,7 @@ import {
   useMobile,
 } from "@allape/gocrud-react";
 import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButton";
+import { LyricsDriver } from "@allape/lyrics";
 import { CopyOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -17,10 +18,9 @@ import {
   InputNumber,
   TableColumnsType,
 } from "antd";
-import { ReactElement, useCallback, useMemo, useState } from "react";
+import { DragEvent, ReactElement, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LyricsCrudy } from "../../api/lyrics.ts";
-import Lyrics from "../../helper/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
 import CopyButton from "../CopyButton";
 
@@ -105,8 +105,27 @@ export default function LyricsCrudyButton(
       return;
     }
 
-    form?.setFieldValue("content", Lyrics.parseStandardLRC(lrc).toString());
+    form?.setFieldValue(
+      "content",
+      LyricsDriver.parseStandardLRC(lrc).toString(),
+    );
   }, [form, t]);
+
+  const handleLRCPDrop = useCallback(
+    async (e: DragEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = e.dataTransfer?.files;
+      const text = await files?.[0]?.text();
+      if (!text) {
+        return;
+      }
+
+      form?.setFieldValue("content", text);
+    },
+    [form],
+  );
 
   return (
     <CrudyButton
@@ -160,7 +179,11 @@ export default function LyricsCrudyButton(
         }
         rules={[{ required: true }]}
       >
-        <Input.TextArea rows={10} placeholder={t("lyrics.content")} />
+        <Input.TextArea
+          onDrop={handleLRCPDrop}
+          rows={10}
+          placeholder={t("lyrics.content")}
+        />
       </Form.Item>
       <Form.Item name="description" label={t("lyrics.description")}>
         <Input.TextArea

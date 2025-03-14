@@ -1,0 +1,20 @@
+.wrapper {
+  .placeholder {
+    height: 40dvh;
+  }
+
+  .loadingText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 20px;
+  }
+
+  .selector {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+}

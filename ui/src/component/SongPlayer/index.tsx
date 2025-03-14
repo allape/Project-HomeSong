@@ -1,4 +1,5 @@
 import { config, Flex, useMobile } from "@allape/gocrud-react";
+import { TimePoint, useRAFAudioTime } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
 import {
   CloseOutlined,
@@ -48,7 +49,7 @@ import styles from "./style.module.scss";
 
 type PageNumber = number;
 
-export interface ICollectionPlayerProps {
+export interface ISongPlayerProps {
   song?: ISongWithCollections;
   onClose?: () => void;
 }
@@ -64,10 +65,10 @@ function modifySong(s: ISongWithCollections): IModifiedSong {
   };
 }
 
-export default function CollectionPlayer({
+export default function SongPlayer({
   song: songFromProps,
   onClose,
-}: ICollectionPlayerProps): ReactElement {
+}: ISongPlayerProps): ReactElement {
   const { t } = useTranslation();
 
   const { loading, execute } = useLoading();
@@ -108,10 +109,16 @@ export default function CollectionPlayer({
     undefined,
   );
 
-  const [current, _setCurrent] = useState<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [current] = useRAFAudioTime(audioRef);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
+
+  const handleAudioOk = useCallback((audio: HTMLAudioElement | null) => {
+    audioRef.current = audio;
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -292,9 +299,9 @@ export default function CollectionPlayer({
     [handleNext, playingRef, setLoop],
   );
 
-  const setCurrent = useCallback(
-    (c: number) => {
-      PEE.dispatchEvent("seek", c);
+  const seekTo = useCallback(
+    (c: TimePoint) => {
+      PEE.dispatchEvent("seek", c / 1000);
     },
     [PEE],
   );
@@ -333,7 +340,7 @@ export default function CollectionPlayer({
           >
             {song ? song._name : t("player.name")}
             {collapsed && playing && !isMobile && (
-              <MiniProgressBar current={current} duration={duration} />
+              <MiniProgressBar current={current / 1000} duration={duration} />
             )}
           </span>
           {song && (
@@ -402,8 +409,8 @@ export default function CollectionPlayer({
             onChange={setPlaying}
             onNext={handleNext}
             onPrev={handlePrev}
-            onCurrentChange={_setCurrent}
             onDurationChange={setDuration}
+            onAudioOk={handleAudioOk}
           />
           <Controller
             view={view}
@@ -418,7 +425,7 @@ export default function CollectionPlayer({
           <SongList song={song} songs={songs} onChange={setSong} />
         )}
         {view === "lyrics" && (
-          <Karaoke current={current} song={song} onChange={setCurrent} />
+          <Karaoke current={current} song={song} onChange={seekTo} />
         )}
       </div>
     </Card>

@@ -56,7 +56,7 @@ import {
   upload,
 } from "../../api/song.ts";
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
-import CollectionPlayer from "../../component/CollectionPlayer";
+import SongPlayer from "../../component/SongPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import CopyButton from "../../component/CopyButton";
 import LyricsCrudyButton from "../../component/LyricsCrudyButton";
@@ -548,7 +548,7 @@ export default function Song(): ReactElement {
         )}
       </CrudyTable>
       {playerVisible && (
-        <CollectionPlayer
+        <SongPlayer
           song={songForPlay}
           onClose={() => {
             setPlayerVisible(false);
