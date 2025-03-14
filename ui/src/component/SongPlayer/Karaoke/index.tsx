@@ -1,5 +1,5 @@
 import { ILV } from "@allape/gocrud-react";
-import { ILyricsProps, Lyrics, TimePoint } from '@allape/lyrics';
+import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Select } from "antd";
@@ -12,7 +12,7 @@ import styles from "./style.module.scss";
 
 const LyricsStyles: ILyricsProps["styles"] = {
   mask: {
-    translate: "0 -2.5px",
+    translate: "0 -1.5px",
   },
 };
 

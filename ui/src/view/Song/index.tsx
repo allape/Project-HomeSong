@@ -56,11 +56,11 @@ import {
   upload,
 } from "../../api/song.ts";
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
-import SongPlayer from "../../component/SongPlayer";
 import CollectionSelector from "../../component/CollectionSelector";
 import CopyButton from "../../component/CopyButton";
 import LyricsCrudyButton from "../../component/LyricsCrudyButton";
 import LyricsSelector from "../../component/LyricsSelector";
+import SongPlayer from "../../component/SongPlayer";
 import WordInput from "../../component/WordInput";
 import { ICollection } from "../../model/collection.ts";
 import { ILyrics } from "../../model/lyrics.ts";
@@ -340,7 +340,9 @@ export default function Song(): ReactElement {
             type="link"
             onClick={() => window.open(record._url)}
           >
-            <DownloadOutlined />
+            <a href={record._url} onClick={(e) => e.preventDefault()}>
+              <DownloadOutlined />
+            </a>
           </Button>
         </>
       );
