@@ -2,7 +2,7 @@ import { ILV } from "@allape/gocrud-react";
 import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
-import { Select } from "antd";
+import { Empty, Select } from "antd";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getLyrics } from "../../../api/song.ts";
@@ -78,6 +78,9 @@ export default function Karaoke({
         <div className={styles.loadingText}>
           <LoadingOutlined /> {t("player.loadingLyrics")}
         </div>
+      )}
+      {!loading && options.length === 0 && (
+        <Empty className={styles.empty} description={t("player.noLyrics")} />
       )}
       <Lyrics
         karaoke
