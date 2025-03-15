@@ -1,5 +1,5 @@
 import { ILV } from "@allape/gocrud-react";
-import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
+import { Lyrics, TimePoint } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Empty, Select } from "antd";
@@ -9,12 +9,6 @@ import { getLyrics } from "../../../api/song.ts";
 import { ILyrics } from "../../../model/lyrics.ts";
 import { ISong } from "../../../model/song.ts";
 import styles from "./style.module.scss";
-
-const LyricsStyles: ILyricsProps["styles"] = {
-  mask: {
-    translate: "0 -1.5px",
-  },
-};
 
 export interface IKaraokeProps {
   current: TimePoint;
@@ -84,7 +78,6 @@ export default function Karaoke({
       )}
       <Lyrics
         karaoke
-        styles={LyricsStyles}
         current={current}
         content={currentLyrics?.content}
         onChange={onChange}
