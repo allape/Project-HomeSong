@@ -111,7 +111,7 @@ export default function SongPlayer({
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const [current] = useRAFAudioTime(audioRef);
+  const [current] = useRAFAudioTime(audioRef.current);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");

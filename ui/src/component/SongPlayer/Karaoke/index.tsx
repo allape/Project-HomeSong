@@ -53,6 +53,10 @@ export default function Karaoke({
     execute(async () => {
       const ls: IModifiedLyrics[] = await getLyrics(song.id);
 
+      allLyrics.current = [];
+      setCurrentLyrics(undefined);
+      setOptions([]);
+
       if (!ls[0]) {
         return;
       }
@@ -76,19 +80,21 @@ export default function Karaoke({
       {!loading && options.length === 0 && (
         <Empty className={styles.empty} description={t("player.noLyrics")} />
       )}
-      <Lyrics
-        karaoke
-        current={current}
-        content={currentLyrics?.content}
-        onChange={onChange}
-      />
+      {currentLyrics?.content && (
+        <Lyrics
+          karaoke
+          current={current}
+          content={currentLyrics.content}
+          onChange={onChange}
+        />
+      )}
       <Select<ILyrics["id"]>
         loading={loading}
         className={styles.selector}
         value={currentLyrics?.id}
         options={options}
         onChange={handleChange}
-        placeholder={t("lyrics._")}
+        placeholder={options.length ? t("lyrics._") : t("player.noLyrics")}
       />
     </div>
   );

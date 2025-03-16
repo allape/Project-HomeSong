@@ -215,10 +215,6 @@ export default function Song(): ReactElement {
     async (records: IRecord[]): Promise<IRecord[]> => {
       const swcs = await fillSongsWithCollections(records);
       return swcs.map<IRecord>((s) => {
-        const artistNames = s._collections
-          .filter((c) => c.type === "artist")
-          .map((c) => c.name);
-
         return {
           ...s,
 
@@ -229,12 +225,11 @@ export default function Song(): ReactElement {
 
           _collectionIds: s._collections.map((c) => c.id),
 
-          _artistNames: artistNames,
           _nonartistNames: s._collections
             .filter((c) => c.type !== "artist")
             .map((c) => c.name),
 
-          _name: `${artistNames ? `${artistNames} - ` : ""}${s.name}`,
+          _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
         };
       });
     },
