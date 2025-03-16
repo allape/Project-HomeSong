@@ -109,16 +109,19 @@ export default function SongPlayer({
     undefined,
   );
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  const [current] = useRAFAudioTime(audioRef.current);
+  const [current] = useRAFAudioTime(audio);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
 
-  const handleAudioOk = useCallback((audio: HTMLAudioElement | null) => {
-    audioRef.current = audio;
-  }, []);
+  const handleAudioOk = useCallback(
+    (audio: HTMLAudioElement | null) => {
+      setAudio(audio);
+    },
+    [setAudio],
+  );
 
   useEffect(() => {
     return () => {
