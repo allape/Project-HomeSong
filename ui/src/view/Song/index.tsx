@@ -163,6 +163,7 @@ export default function Song(): ReactElement {
         ellipsis: { showTitle: true },
         render: (_, record) => (
           <Flex justifyContent="flex-start">
+            <CopyButton value={record._name} />
             <Tooltip title={record._name}>
               <Button
                 type="link"
@@ -175,7 +176,6 @@ export default function Song(): ReactElement {
                 {record._name}
               </Button>
             </Tooltip>
-            <CopyButton value={record._name} />
           </Flex>
         ),
         filtered: !!searchParams["like_name"],

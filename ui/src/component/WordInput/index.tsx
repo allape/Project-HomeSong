@@ -10,12 +10,14 @@ import {
 export interface IWordInputProps
   extends Omit<InputProps, "value" | "onChange"> {
   value?: string;
+  splitter?: RegExp;
   onChange?: (value?: string) => void;
   onTagCtrlClick?: (value: string) => void;
 }
 
 export default function WordInput({
   value,
+  splitter = /[-|,.、/&]+/,
   onChange,
   onTagCtrlClick,
   ...props
@@ -29,7 +31,7 @@ export default function WordInput({
     }
 
     const values = value
-      .split(/[-|,.、/]+/)
+      .split(splitter)
       .map((i) => i.trim())
       .filter((i) => !!i);
 
@@ -40,7 +42,7 @@ export default function WordInput({
       }
       return words;
     });
-  }, [value]);
+  }, [splitter, value]);
 
   const handleClick = useCallback(
     (e: MouseEvent<HTMLSpanElement>, word: string) => {

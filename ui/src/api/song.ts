@@ -69,7 +69,7 @@ export async function fillSongsWithCollections(
       _artistName: cs
         .filter((c) => c.type === "artist")
         .map((c) => c.name)
-        .join(", "),
+        .join(" & "),
       _nonartistName: cs
         .filter((c) => c.type !== "artist")
         .map((c) => c.name)

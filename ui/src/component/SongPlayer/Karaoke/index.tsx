@@ -1,5 +1,5 @@
 import { ILV } from "@allape/gocrud-react";
-import { Lyrics, TimePoint } from "@allape/lyrics";
+import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Empty, Select } from "antd";
@@ -9,6 +9,10 @@ import { getLyrics } from "../../../api/song.ts";
 import { ILyrics } from "../../../model/lyrics.ts";
 import { ISong } from "../../../model/song.ts";
 import styles from "./style.module.scss";
+
+const LyricsStyles: ILyricsProps["classNames"] = {
+  line: styles.line,
+};
 
 export interface IKaraokeProps {
   current: TimePoint;
@@ -86,6 +90,7 @@ export default function Karaoke({
           current={current}
           content={currentLyrics.content}
           onChange={onChange}
+          classNames={LyricsStyles}
         />
       )}
       <Select<ILyrics["id"]>
