@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { LyricsCrudy } from "../../api/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
 import CopyButton from "../CopyButton";
+import SongNameInput from "../SongNameInput";
 
 type IRecord = ILyrics;
 type ISearchParams = ILyricsSearchParams;
@@ -163,7 +164,7 @@ export default function LyricsCrudyButton(
         label={t("lyrics.name")}
         rules={[{ required: true }]}
       >
-        <Input maxLength={200} placeholder={t("lyrics.name")} />
+        <SongNameInput maxLength={200} placeholder={t("lyrics.name")} />
       </Form.Item>
 
       <Form.Item
