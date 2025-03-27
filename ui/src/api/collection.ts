@@ -12,10 +12,11 @@ export const CollectionSongCrudy = new Crudy<ICollectionSong>(
 
 export function saveCollectionSongsBySong(
   songId: ISong["id"],
+  role: ICollectionSong["role"] = "_",
   collectionIds: ICollection["id"][],
 ): Promise<ICollectionSong[]> {
   return get(
-    `${config.SERVER_URL}/collection/song/save-by-song/${songId}?collectionIds=${encodeURIComponent(collectionIds.join(","))}`,
+    `${config.SERVER_URL}/collection/song/save-by-song/${songId}/${role}?collectionIds=${encodeURIComponent(collectionIds.join(","))}`,
     {
       method: "PUT",
     },

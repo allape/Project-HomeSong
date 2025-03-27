@@ -61,7 +61,7 @@ function modifySong(s: ISongWithCollections): IModifiedSong {
       ? `${config.SERVER_STATIC_URL}${s.filename}`
       : `${config.SERVER_URL}/song/hotwire/${s.id}`,
     _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
-    _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
+    _name: `${s._singerNames ? `${s._singerNames} - ` : ""}${s.name}`,
   };
 }
 
@@ -465,7 +465,7 @@ function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
                 />
               }
               title={<div className={styles.name}>{item._name}</div>}
-              description={item._nonartistName || "-"}
+              description={item._nonArtistNames || "-"}
             />
           </List.Item>
         )}

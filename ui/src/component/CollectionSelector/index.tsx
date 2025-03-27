@@ -5,25 +5,30 @@ import { PropsWithChildren, ReactElement, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CollectionCrudy } from "../../api/collection.ts";
 import {
+  ArtistCollectionTypes,
   ICollection,
   ICollectionSearchParams,
+  NonArtistCollectionTypes,
 } from "../../model/collection.ts";
 
-export type ICollectionSelectorProps = Partial<
-  ICrudySelectorProps<ICollection>
->;
+export interface ICollectionSelectorProps
+  extends Partial<ICrudySelectorProps<ICollection>> {
+  types?: ICollection["type"][];
+}
 
-export default function CollectionSelector(
-  props: PropsWithChildren<ICollectionSelectorProps>,
-): ReactElement {
+export default function CollectionSelector({
+  types,
+  ...props
+}: PropsWithChildren<ICollectionSelectorProps>): ReactElement {
   const { t } = useTranslation();
 
   const sp = useMemo<ICollectionSearchParams>(
     () => ({
       ...BaseSearchParams,
+      in_type: types,
       orderBy_index: "asc",
     }),
-    [],
+    [types],
   );
 
   return (
@@ -36,4 +41,16 @@ export default function CollectionSelector(
       searchPropName="keywords"
     />
   );
+}
+
+export function ArtistSelector(
+  props: PropsWithChildren<ICollectionSelectorProps>,
+) {
+  return <CollectionSelector {...props} types={ArtistCollectionTypes} />;
+}
+
+export function NonArtistSelector(
+  props: PropsWithChildren<ICollectionSelectorProps>,
+) {
+  return <CollectionSelector {...props} types={NonArtistCollectionTypes} />;
 }

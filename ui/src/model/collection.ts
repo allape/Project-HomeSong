@@ -19,9 +19,9 @@ export interface ICollectionSearchParams extends IBaseSearchParams {
   in_id?: ICollection["id"][];
   in_type?: ICollection["type"][];
   keywords?: string;
-  orderBy_index?: 'desc' | 'asc';
-  orderBy_createdAt?: 'desc' | 'asc';
-  orderBy_updatedAt?: 'desc' | 'asc';
+  orderBy_index?: "desc" | "asc";
+  orderBy_createdAt?: "desc" | "asc";
+  orderBy_updatedAt?: "desc" | "asc";
 }
 
 export function useCollectionTypes(): IColoredLV<CollectionType>[] {
@@ -54,12 +54,20 @@ export const CollectionTypes: IColoredLV<CollectionType>[] = [
   },
 ];
 
+export const ArtistCollectionTypes: CollectionType[] = ["artist"];
+
+export const NonArtistCollectionTypes: CollectionType[] = ["album", "playlist"];
+
+export type Role = "singer" | "lyricist" | "composer" | "arranger" | "other" | "_";
+
 export interface ICollectionSong extends Pick<IBase, "createdAt"> {
   songId: ISong["id"];
   collectionId: ICollection["id"];
+  role: Role;
 }
 
 export interface ICollectionSongSearchParams extends IBaseSearchParams {
   in_songId?: ISong["id"][];
   in_collectionId?: ICollection["id"][];
+  in_role?: Role[];
 }

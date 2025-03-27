@@ -17,7 +17,7 @@ export interface IWordInputProps
 
 export default function WordInput({
   value,
-  splitter = /[-|,.、/&]+/,
+  splitter,
   onChange,
   onTagCtrlClick,
   ...props
@@ -31,7 +31,7 @@ export default function WordInput({
     }
 
     const values = value
-      .split(splitter)
+      .split(splitter || /[-|,.、/&]+/)
       .map((i) => i.trim())
       .filter((i) => !!i);
 

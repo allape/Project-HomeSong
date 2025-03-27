@@ -13,6 +13,26 @@ const (
 	CollectionTypeSong   CollectionType = "playlist"
 )
 
+type Role string
+
+const (
+	Singer   Role = "singer"
+	Lyricist Role = "lyricist"
+	Composer Role = "composer"
+	Arranger Role = "arranger"
+	Other    Role = "other"
+	Reserved Role = "_"
+)
+
+var Roles = []Role{
+	Singer,
+	Lyricist,
+	Composer,
+	Arranger,
+	Other,
+	Reserved,
+}
+
 type Collection struct {
 	gocrud.Base
 	Type        CollectionType `json:"type"`
@@ -26,5 +46,6 @@ type Collection struct {
 type CollectionSong struct {
 	SongID       gocrud.ID `json:"songId"`
 	CollectionID gocrud.ID `json:"collectionId"`
+	Role         Role      `json:"role" gorm:"default:'_'"`
 	CreatedAt    time.Time `json:"createdAt" gorm:"autoCreateTime;<-:create"`
 }

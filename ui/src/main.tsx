@@ -45,6 +45,13 @@ i18n
             album: "专辑",
             playlist: "歌单",
           },
+          artistTypes: {
+            singer: "演唱",
+            lyricist: "作词",
+            composer: "作曲",
+            arranger: "编曲",
+            other: "其他",
+          },
         },
         lyrics: {
           _: "歌词",
@@ -115,6 +122,13 @@ i18n
             artist: "Artist",
             album: "Album",
             playlist: "Playlist",
+          },
+          artistTypes: {
+            singer: "Singer",
+            lyricist: "Lyricist",
+            composer: "Composer",
+            arranger: "Arranger",
+            other: "Other",
           },
         },
         lyrics: {

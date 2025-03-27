@@ -56,7 +56,10 @@ import {
   upload,
 } from "../../api/song.ts";
 import CollectionCrudyButton from "../../component/CollectionCrudyButton";
-import CollectionSelector from "../../component/CollectionSelector";
+import CollectionSelector, {
+  ArtistSelector,
+  NonArtistSelector,
+} from "../../component/CollectionSelector";
 import CopyButton from "../../component/CopyButton";
 import LyricsCrudyButton from "../../component/LyricsCrudyButton";
 import LyricsSelector from "../../component/LyricsSelector";
@@ -64,24 +67,16 @@ import SongPlayer from "../../component/SongPlayer";
 import WordInput from "../../component/WordInput";
 import { ICollection } from "../../model/collection.ts";
 import { ILyrics } from "../../model/lyrics.ts";
-import { ISong, ISongSearchParams } from "../../model/song.ts";
+import { ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
 
 type ISearchParams = ISongSearchParams;
 
-interface IRecord
-  extends Partial<
-      Pick<
-        ISongWithCollections,
-        "_collections" | "_artistName" | "_nonartistName"
-      >
-    >,
-    ISong {
+interface IRecord extends ISongWithCollections {
   _continuesUpload?: boolean;
   _keepCover?: boolean;
 
   _file?: File;
-  _collectionIds?: ICollection["id"][];
   _lyricsIds?: ILyrics["id"][];
 
   _url?: string;
@@ -142,7 +137,7 @@ export default function Song(): ReactElement {
       },
       {
         title: t("collection._"),
-        dataIndex: "_nonartistName",
+        dataIndex: "_nonArtistNames",
         ellipsis: { showTitle: true },
         filtered: !!searchParams["collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
@@ -176,6 +171,11 @@ export default function Song(): ReactElement {
                 {record._name}
               </Button>
             </Tooltip>
+            <span>
+              {record._nonSingerNames
+                ? `+ ${record._nonSingerNames}`
+                : undefined}
+            </span>
           </Flex>
         ),
         filtered: !!searchParams["like_name"],
@@ -223,13 +223,7 @@ export default function Song(): ReactElement {
             : undefined,
           _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
 
-          _collectionIds: s._collections.map((c) => c.id),
-
-          _nonartistNames: s._collections
-            .filter((c) => c.type !== "artist")
-            .map((c) => c.name),
-
-          _name: `${s._artistName ? `${s._artistName} - ` : ""}${s.name}`,
+          _name: `${s._singerNames ? `${s._singerNames} - ` : ""}${s.name}`,
         };
       });
     },
@@ -241,7 +235,25 @@ export default function Song(): ReactElement {
 
     fileRef.current = undefined;
 
-    await saveCollectionSongsBySong(song.id, record._collectionIds || []);
+    await saveCollectionSongsBySong(song.id, "_", record._nonArtistIds || []);
+
+    await saveCollectionSongsBySong(song.id, "singer", record._singerIds || []);
+    await saveCollectionSongsBySong(
+      song.id,
+      "lyricist",
+      record._lyricistIds || [],
+    );
+    await saveCollectionSongsBySong(
+      song.id,
+      "composer",
+      record._composerIds || [],
+    );
+    await saveCollectionSongsBySong(
+      song.id,
+      "arranger",
+      record._arrangerIds || [],
+    );
+    await saveCollectionSongsBySong(song.id, "other", record._otherIds || []);
 
     await saveLyricsBySong(song.id, record._lyricsIds || []);
 
@@ -314,7 +326,8 @@ export default function Song(): ReactElement {
     form.setFieldsValue({
       _continuesUpload: true,
       _keepCover: value._keepCover,
-      _collectionIds: value._collectionIds,
+      _nonArtistIds: value._nonArtistIds,
+
       description: value.description,
       cover: value._keepCover ? value.cover : undefined,
     });
@@ -365,9 +378,9 @@ export default function Song(): ReactElement {
 
       message.success(t("created"));
 
-      const existingCollections = form?.getFieldValue("_collectionIds") || [];
+      const existingCollections = form?.getFieldValue("_singerIds") || [];
       form?.setFieldValue(
-        "_collectionIds",
+        "_singerIds",
         Array.from(
           new Set([...artists.map((a) => a.id), ...existingCollections]),
         ),
@@ -487,6 +500,7 @@ export default function Song(): ReactElement {
                 onChange={handleFileChange}
               />
             </Form.Item>
+
             <Form.Item name="index" label={t("song.index")}>
               <InputNumber
                 min={-9999}
@@ -496,9 +510,11 @@ export default function Song(): ReactElement {
                 placeholder={t("song.index")}
               />
             </Form.Item>
+
             <Form.Item name="cover" label={t("song.cover")}>
               <Uploader serverURL={config.SERVER_STATIC_URL} accept="image/*" />
             </Form.Item>
+
             <Form.Item
               name="name"
               label={t("song.name")}
@@ -510,30 +526,84 @@ export default function Song(): ReactElement {
                 onTagCtrlClick={handleCreateArtist}
               />
             </Form.Item>
-            <Form.Item name="_collectionIds" label={t("collection._")}>
-              <CollectionSelector mode="multiple">
-                <Button
-                  onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
-                >
-                  {t("gocrud.manage")}
+
+            <Form.Item
+              name="_singerIds"
+              label={
+                <Flex>
+                  {t("collection.artistTypes.singer")}
+                  <Divider type="vertical" />
+                  <Button type="primary" onClick={() => handleCreateArtist()}>
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
+            >
+              <ArtistSelector mode="multiple" />
+            </Form.Item>
+            <Form.Item
+              name="_lyricistIds"
+              label={t("collection.artistTypes.lyricist")}
+            >
+              <ArtistSelector mode="multiple" />
+            </Form.Item>
+            <Form.Item
+              name="_composerIds"
+              label={t("collection.artistTypes.composer")}
+            >
+              <ArtistSelector mode="multiple" />
+            </Form.Item>
+            <Form.Item
+              name="_arrangerIds"
+              label={t("collection.artistTypes.arranger")}
+            >
+              <ArtistSelector mode="multiple" />
+            </Form.Item>
+            <Form.Item
+              name="_otherIds"
+              label={t("collection.artistTypes.other")}
+            >
+              <ArtistSelector mode="multiple" />
+            </Form.Item>
+
+            <Form.Item
+              name="_nonArtistIds"
+              label={
+                <Flex>
                   {t("collection._")}
-                </Button>
-                <Divider type="vertical" />
-                <Button type="primary" onClick={() => handleCreateArtist()}>
-                  {t("createArtistsFast")}
-                </Button>
-              </CollectionSelector>
+                  <Divider type="vertical" />
+
+                  <Button
+                    onClick={() => CollectionCrudyEmitter.dispatchEvent("open")}
+                  >
+                    {t("gocrud.manage")}
+                    {t("collection._")}
+                  </Button>
+                </Flex>
+              }
+            >
+              <NonArtistSelector mode="multiple"></NonArtistSelector>
             </Form.Item>
-            <Form.Item name="_lyricsIds" label={t("lyrics._")}>
-              <LyricsSelector mode="multiple">
-                <Button
-                  onClick={() => LyricsCrudyEmitter.dispatchEvent("open")}
-                >
-                  {t("gocrud.manage")}
+
+            <Form.Item
+              name="_lyricsIds"
+              label={
+                <Flex>
                   {t("lyrics._")}
-                </Button>
-              </LyricsSelector>
+                  <Divider type="vertical" />
+
+                  <Button
+                    onClick={() => LyricsCrudyEmitter.dispatchEvent("open")}
+                  >
+                    {t("gocrud.manage")}
+                    {t("lyrics._")}
+                  </Button>
+                </Flex>
+              }
+            >
+              <LyricsSelector mode="multiple" />
             </Form.Item>
+
             <Form.Item name="description" label={t("song.description")}>
               <Input.TextArea
                 rows={10}

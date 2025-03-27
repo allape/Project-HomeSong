@@ -96,14 +96,12 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 
 			fullpath := path.Join(env.StaticFolder, string(filename))
 
-			if song.MIME == "" {
-				mime, err := filetype.MatchFile(fullpath)
-				if err != nil {
-					gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), err)
-					return
-				}
-				song.MIME = mime.MIME.Value
+			mime, err := filetype.MatchFile(fullpath)
+			if err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), err)
+				return
 			}
+			song.MIME = mime.MIME.Value
 
 			ffprobe, ffprobeJson, err := ffmpeg.FFProbe(fullpath)
 			if err != nil {

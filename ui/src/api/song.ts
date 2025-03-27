@@ -23,9 +23,21 @@ export function upload(song: Partial<ISong>, file?: File): Promise<ISong> {
 }
 
 export interface ISongWithCollections extends ISong {
-  _collections: ICollection[];
-  _artistName: string;
-  _nonartistName: string;
+  _collections?: ICollection[];
+  _singerNames?: string;
+  _singerIds?: ICollection["id"][];
+  _lyricistNames?: string;
+  _lyricistIds?: ICollection["id"][];
+  _composerNames?: string;
+  _composerIds?: ICollection["id"][];
+  _arrangerNames?: string;
+  _arrangerIds?: ICollection["id"][];
+  _otherNames?: string;
+  _otherIds?: ICollection["id"][];
+  _nonSingerNames?: string;
+  _nonSingerIds?: ICollection["id"][];
+  _nonArtistNames?: string;
+  _nonArtistIds?: ICollection["id"][];
 }
 
 export async function fillSongsWithCollections(
@@ -57,23 +69,84 @@ export async function fillSongsWithCollections(
   }
 
   return songs.map<ISongWithCollections>((s) => {
-    const aIds = collectionSongs
-      .filter((cs) => cs.songId === s.id)
+    const currentCss = collectionSongs.filter((cs) => cs.songId === s.id);
+    const currentCsIds = currentCss.map((cs) => cs.collectionId);
+
+    const singerIds = currentCss
+      .filter((cs) => cs.role === "singer")
       .map((cs) => cs.collectionId);
 
-    const cs = collections.filter((a) => aIds.includes(a.id));
+    const lyricistIds = currentCss
+      .filter((cs) => cs.role === "lyricist")
+      .map((cs) => cs.collectionId);
+
+    const composerIds = currentCss
+      .filter((cs) => cs.role === "composer")
+      .map((cs) => cs.collectionId);
+
+    const arrangerIds = currentCss
+      .filter((cs) => cs.role === "arranger")
+      .map((cs) => cs.collectionId);
+
+    const otherIds = currentCss
+      .filter((cs) => cs.role === "other")
+      .map((cs) => cs.collectionId);
+
+    const nonArtistIds = currentCss
+      .filter((cs) => cs.role === "_")
+      .map((cs) => cs.collectionId);
+
+    const nonSingerIds = currentCss
+      .filter((cs) => cs.role !== "singer" && cs.role !== "_")
+      .map((cs) => cs.collectionId);
+
+    const cs = collections.filter((c) => currentCsIds.includes(c.id));
 
     return {
       ...s,
       _collections: cs,
-      _artistName: cs
-        .filter((c) => c.type === "artist")
+
+      _singerNames: collections
+        .filter((c) => singerIds.includes(c.id))
         .map((c) => c.name)
         .join(" & "),
-      _nonartistName: cs
-        .filter((c) => c.type !== "artist")
+      _singerIds: singerIds,
+
+      _lyricistNames: collections
+        .filter((c) => lyricistIds.includes(c.id))
+        .map((c) => c.name)
+        .join(" & "),
+      _lyricistIds: lyricistIds,
+
+      _composerNames: collections
+        .filter((c) => composerIds.includes(c.id))
+        .map((c) => c.name)
+        .join(" & "),
+      _composerIds: composerIds,
+
+      _arrangerNames: collections
+        .filter((c) => arrangerIds.includes(c.id))
+        .map((c) => c.name)
+        .join(" & "),
+      _arrangerIds: arrangerIds,
+
+      _otherNames: collections
+        .filter((c) => otherIds.includes(c.id))
+        .map((c) => c.name)
+        .join(" & "),
+      _otherIds: otherIds,
+
+      _nonSingerNames: collections
+        .filter((c) => nonSingerIds.includes(c.id))
+        .map((c) => c.name)
+        .join(" & "),
+      _nonSingerIds: nonSingerIds,
+
+      _nonArtistNames: collections
+        .filter((c) => nonArtistIds.includes(c.id))
         .map((c) => c.name)
         .join(", "),
+      _nonArtistIds: nonArtistIds,
     };
   });
 }

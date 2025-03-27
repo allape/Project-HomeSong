@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -121,6 +122,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"in_songId":       gocrud.KeywordIDIn("song_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
 			"in_collectionId": gocrud.KeywordIDIn("collection_id", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
+			"in_role":         gocrud.KeywordIDIn("role", gocrud.OverflowedArrayTrimmerFilter[gocrud.ID](DefaultPageSize)),
 		},
 	})
 	if err != nil {
@@ -128,11 +130,18 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 	}
 
 	// ?collectionIds=
-	collectionSongGroup.PUT("/save-by-song/:songId", func(context *gin.Context) {
+	collectionSongGroup.PUT("/save-by-song/:songId/:role", func(context *gin.Context) {
 		songId := gocrud.Pick[gocrud.ID](gocrud.IDsFromCommaSeparatedString(context.Param("songId")), 0, 0)
 		if songId == 0 {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "songId not found")
 			return
+		}
+
+		role := model.Role(strings.TrimSpace(context.Param("role")))
+		if !slices.Contains(model.Roles, role) {
+			//gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "role not found")
+			//return
+			l.Warn().Printf("role not found in presets: %s", role)
 		}
 
 		collectionIds := gocrud.IDsFromCommaSeparatedString(context.Query("collectionIds"))
@@ -152,7 +161,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 			}
 		}
 
-		if err := db.Model(&model.CollectionSong{}).Where("song_id = ?", song.ID).Delete(&model.CollectionSong{}).Error; err != nil {
+		if err := db.Model(&model.CollectionSong{}).Where("song_id = ? AND role = ?", song.ID, role).Delete(&model.CollectionSong{}).Error; err != nil {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
 			return
 		}
@@ -163,6 +172,7 @@ func SetupCollectionController(group *gin.RouterGroup, db *gorm.DB) error {
 				collectionSongs[i] = model.CollectionSong{
 					SongID:       song.ID,
 					CollectionID: collection.ID,
+					Role:         role,
 				}
 			}
 
