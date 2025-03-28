@@ -28,6 +28,7 @@ import {
   Input,
   InputNumber,
   MenuProps,
+  ModalProps,
   Switch,
   TableColumnsType,
   Tooltip,
@@ -69,6 +70,10 @@ import { ICollection } from "../../model/collection.ts";
 import { ILyrics } from "../../model/lyrics.ts";
 import { ISongSearchParams } from "../../model/song.ts";
 import styles from "./style.module.scss";
+
+const LyricsCrudyButtonModalProps: ModalProps = {
+  forceRender: true,
+};
 
 type ISearchParams = ISongSearchParams;
 
@@ -432,7 +437,10 @@ export default function Song(): ReactElement {
         extra={
           <>
             <div className={styles.windowed}>
-              <LyricsCrudyButton emitter={LyricsCrudyEmitter} />
+              <LyricsCrudyButton
+                modalProps={LyricsCrudyButtonModalProps}
+                emitter={LyricsCrudyEmitter}
+              />
               <Divider type="vertical" />
               <CollectionCrudyButton emitter={CollectionCrudyEmitter} />
               <Divider type="vertical" />
@@ -596,6 +604,19 @@ export default function Song(): ReactElement {
                     onClick={() => LyricsCrudyEmitter.dispatchEvent("open")}
                   >
                     {t("gocrud.manage")}
+                    {t("lyrics._")}
+                  </Button>
+                  <Divider type="vertical" />
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      LyricsCrudyEmitter.dispatchEvent("open");
+                      setTimeout(() => {
+                        LyricsCrudyEmitter.dispatchEvent("open-save-form");
+                      });
+                    }}
+                  >
+                    {t("gocrud.add")}
                     {t("lyrics._")}
                   </Button>
                 </Flex>
