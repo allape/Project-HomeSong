@@ -501,7 +501,14 @@ export default function Song(): ReactElement {
                   <CopyButton value={handleCopyFilename} />
                 </Flex>
               }
-              rules={[{ required: !record?.id }]}
+              rules={[
+                {
+                  required: !record?.id,
+                  message: t("required", {
+                    name: t("song._"),
+                  }),
+                },
+              ]}
             >
               <Input
                 type="file"

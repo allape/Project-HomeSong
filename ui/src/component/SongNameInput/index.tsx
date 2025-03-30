@@ -18,7 +18,7 @@ export default function SongNameInput({
   ...props
 }: ISongNameInputProps): ReactElement {
   const formattedName = useMemo(() => {
-    return value?.replace(splitter || /\s*([-&])\s*/gi, " $1 ") || "";
+    return value?.trim().replace(splitter || /\s*([-&])\s*/gi, " $1 ") || "";
   }, [splitter, value]);
   return (
     <div>

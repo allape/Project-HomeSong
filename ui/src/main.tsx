@@ -21,6 +21,7 @@ i18n
         copied: "已复制",
         created: "已创建",
         createArtistsFast: "快速创建艺术家",
+        required: "{{name}} 是必填项",
 
         song: {
           _: "歌曲",
@@ -99,6 +100,7 @@ i18n
         copied: "Copied",
         created: "Created",
         createArtistsFast: "Create Artists",
+        required: "{{name}} is required",
 
         song: {
           _: "Song",

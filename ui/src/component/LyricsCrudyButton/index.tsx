@@ -178,7 +178,14 @@ export default function LyricsCrudyButton(
             </Button>
           </>
         }
-        rules={[{ required: true }]}
+        rules={[
+          {
+            required: true,
+            message: t("required", {
+              name: t("lyrics.content"),
+            }),
+          },
+        ]}
       >
         <Input.TextArea
           onDrop={handleLRCPDrop}
