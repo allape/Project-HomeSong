@@ -488,11 +488,11 @@ function MiniControls({
   onNext,
 }: IMiniControlsProps): ReactElement {
   const { t } = useTranslation();
-  return (
+  return collapsed ? (
     <>
       <Button
         title={playing ? t("player.pause") : t("player.prev")}
-        className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+        className={cls(styles.button)}
         type="link"
         danger={playing}
         onClick={onToggle}
@@ -501,13 +501,15 @@ function MiniControls({
       </Button>
       <Button
         title={t("player.next")}
-        className={cls(styles.button, collapsed ? undefined : styles.mobile)}
+        className={cls(styles.button)}
         type="link"
         onClick={onNext}
       >
         <StepForwardOutlined />
       </Button>
     </>
+  ) : (
+    <></>
   );
 }
 

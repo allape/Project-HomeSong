@@ -25,24 +25,40 @@ export interface IOptions {
 }
 
 export default function useDragger(defaultFunc?: () => IOptions): Dragger {
-  const {
-    x: xFP,
-    y: yFP,
-    xOffset,
-    yOffset,
-  }: IOptions = defaultFunc?.() || {
-    x: 0,
-    y: 0,
-    xOffset: 0,
-    yOffset: 0,
-  };
-
   const xRef = useRef<X>(0);
   const yRef = useRef<Y>(0);
   const isDraggingRef = useRef(false);
 
-  const [x, setX] = useState<X>(() => xFP || 0);
-  const [y, setY] = useState<Y>(() => yFP || 0);
+  const xOffsetRef = useRef<number>(0);
+  const yOffsetRef = useRef<number>(0);
+  const [x, setX] = useState<X>(0);
+  const [y, setY] = useState<Y>(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const {
+        x: xFP,
+        y: yFP,
+        xOffset,
+        yOffset,
+      }: IOptions = defaultFunc?.() || {
+        x: 0,
+        y: 0,
+        xOffset: 0,
+        yOffset: 0,
+      };
+
+      xOffsetRef.current = xOffset || 0;
+      yOffsetRef.current = yOffset || 0;
+      setX(() => xFP || 0);
+      setY(() => yFP || 0);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [defaultFunc]);
 
   const onMouseDown: OnDraggerStart = useCallback((e) => {
     isDraggingRef.current = true;
@@ -51,8 +67,8 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
   }, []);
 
   useEffect(() => {
-    const xo = xOffset || 0;
-    const yo = yOffset || 0;
+    const xo = xOffsetRef.current || 0;
+    const yo = yOffsetRef.current || 0;
 
     const handleResize = () => {
       setX((x) => {
@@ -119,7 +135,7 @@ export default function useDragger(defaultFunc?: () => IOptions): Dragger {
 
       window.removeEventListener("resize", handleResize);
     };
-  }, [xOffset, yOffset]);
+  }, []);
 
   return {
     x,

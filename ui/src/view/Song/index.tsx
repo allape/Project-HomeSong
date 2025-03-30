@@ -111,7 +111,9 @@ export default function Song(): ReactElement {
     orderBy_updatedAt: "desc",
   }));
   const [form, setForm] = useState<FormInstance<IRecord> | undefined>();
-  const [playerVisible, setPlayerVisible] = useState<boolean>(false);
+  const [playerVisible, setPlayerVisible] = useState<boolean>(
+    () => window.innerWidth < 400,
+  );
   const [songForPlay, setSongForPlay] = useState<
     ISongWithCollections | undefined
   >();
@@ -120,7 +122,6 @@ export default function Song(): ReactElement {
     () => [
       {
         title: t("id"),
-        width: 100,
         dataIndex: "id",
       },
       {
@@ -141,28 +142,11 @@ export default function Song(): ReactElement {
         },
       },
       {
-        title: t("collection._"),
-        dataIndex: "_nonArtistNames",
-        ellipsis: { showTitle: true },
-        filtered: !!searchParams["collectionId"],
-        ...searchable<IRecord, ICollection["id"]>(
-          t("song.name"),
-          (value) =>
-            setSearchParams((old) => ({
-              ...old,
-              collectionId: value,
-            })),
-          (value, onChange) => (
-            <CollectionSelector value={value} onChange={onChange} />
-          ),
-        ),
-      },
-      {
         title: t("song.name"),
         dataIndex: "name",
         ellipsis: { showTitle: true },
         render: (_, record) => (
-          <Flex justifyContent="flex-start">
+          <Flex justifyContent="flex-start" className={styles.name}>
             <CopyButton value={record._name} />
             <Tooltip title={record._name}>
               <Button
@@ -189,6 +173,23 @@ export default function Song(): ReactElement {
             ...old,
             like_name: value,
           })),
+        ),
+      },
+      {
+        title: t("collection._"),
+        dataIndex: "_nonArtistNames",
+        ellipsis: { showTitle: true },
+        filtered: !!searchParams["collectionId"],
+        ...searchable<IRecord, ICollection["id"]>(
+          t("song.name"),
+          (value) =>
+            setSearchParams((old) => ({
+              ...old,
+              collectionId: value,
+            })),
+          (value, onChange) => (
+            <CollectionSelector value={value} onChange={onChange} />
+          ),
         ),
       },
       {
