@@ -611,7 +611,6 @@ export default function Song(): ReactElement {
                   <Button
                     type="primary"
                     onClick={() => {
-                      LyricsCrudyEmitter.dispatchEvent("open");
                       setTimeout(() => {
                         LyricsCrudyEmitter.dispatchEvent("open-save-form");
                       });
