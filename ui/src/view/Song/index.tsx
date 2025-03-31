@@ -582,7 +582,7 @@ export default function Song(): ReactElement {
               <WordInput
                 maxLength={200}
                 placeholder={t("song.name")}
-                onTagCtrlClick={handleCreateArtist}
+                onAuxChange={handleCreateArtist}
               />
             </Form.Item>
 

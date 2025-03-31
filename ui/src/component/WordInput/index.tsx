@@ -13,7 +13,7 @@ export interface IWordInputProps
   splitter?: RegExp;
   capitalize?: boolean;
   onChange?: (value?: string) => void;
-  onTagCtrlClick?: (value: string) => void;
+  onAuxChange?: (value: string) => void;
 }
 
 export default function WordInput({
@@ -21,7 +21,7 @@ export default function WordInput({
   splitter,
   capitalize = true,
   onChange,
-  onTagCtrlClick,
+  onAuxChange,
   ...props
 }: IWordInputProps): ReactElement {
   const [words, setWords] = useState<string[]>([]);
@@ -55,16 +55,13 @@ export default function WordInput({
     });
   }, [capitalize, splitter, value]);
 
-  const handleClick = useCallback(
+  const handleContextMenuCapture = useCallback(
     (e: MouseEvent<HTMLSpanElement>, word: string) => {
-      if (e.metaKey || e.ctrlKey) {
-        e.preventDefault();
-        onTagCtrlClick?.(word);
-      } else {
-        onChange?.(word);
-      }
+      e.preventDefault();
+      e.stopPropagation();
+      onAuxChange?.(word);
     },
-    [onChange, onTagCtrlClick],
+    [onAuxChange],
   );
 
   return (
@@ -78,7 +75,8 @@ export default function WordInput({
         {words.map((word) => (
           <Tag
             key={word}
-            onClick={(e) => handleClick(e, word)}
+            onClick={() => onChange?.(word)}
+            onContextMenuCapture={(e) => handleContextMenuCapture(e, word)}
             style={{ cursor: "pointer" }}
           >
             {word}
