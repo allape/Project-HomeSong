@@ -419,6 +419,15 @@ export default function Song(): ReactElement {
     return form?.getFieldValue("_file") || "";
   }, [form]);
 
+  const handleCreateLyrics = useCallback(() => {
+    setTimeout(() => {
+      LyricsCrudyEmitter.dispatchEvent("open-save-form");
+      LyricsCrudyEmitter.once("save-form-closed", (e) => {
+        form?.setFieldValue("_lyricsIds", e.value?.id ? [e.value.id] : []);
+      });
+    });
+  }, [LyricsCrudyEmitter, form]);
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -615,14 +624,7 @@ export default function Song(): ReactElement {
                     {t("lyrics._")}
                   </Button>
                   <Divider type="vertical" />
-                  <Button
-                    type="primary"
-                    onClick={() => {
-                      setTimeout(() => {
-                        LyricsCrudyEmitter.dispatchEvent("open-save-form");
-                      });
-                    }}
-                  >
+                  <Button type="primary" onClick={handleCreateLyrics}>
                     {t("gocrud.add")}
                     {t("lyrics._")}
                   </Button>
