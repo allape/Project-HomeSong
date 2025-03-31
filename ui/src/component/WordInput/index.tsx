@@ -11,6 +11,7 @@ export interface IWordInputProps
   extends Omit<InputProps, "value" | "onChange"> {
   value?: string;
   splitter?: RegExp;
+  capitalize?: boolean;
   onChange?: (value?: string) => void;
   onTagCtrlClick?: (value: string) => void;
 }
@@ -18,6 +19,7 @@ export interface IWordInputProps
 export default function WordInput({
   value,
   splitter,
+  capitalize = true,
   onChange,
   onTagCtrlClick,
   ...props
@@ -30,10 +32,19 @@ export default function WordInput({
       return;
     }
 
-    const values = value
+    let values = value
       .split(splitter || /[-|,.、/&]+/)
       .map((i) => i.trim())
       .filter((i) => !!i);
+
+    if (capitalize) {
+      values = values.map((i) => {
+        return i
+          .split(" ")
+          .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+          .join(" ");
+      });
+    }
 
     setWords((old) => {
       const words: string[] = Array.from(new Set([...values, ...old]));
@@ -42,7 +53,7 @@ export default function WordInput({
       }
       return words;
     });
-  }, [splitter, value]);
+  }, [capitalize, splitter, value]);
 
   const handleClick = useCallback(
     (e: MouseEvent<HTMLSpanElement>, word: string) => {

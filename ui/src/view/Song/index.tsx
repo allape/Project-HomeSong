@@ -1,4 +1,4 @@
-import { BaseSearchParams } from "@allape/gocrud";
+import { BaseSearchParams, IBase } from "@allape/gocrud";
 import {
   asDefaultPattern,
   config,
@@ -419,12 +419,46 @@ export default function Song(): ReactElement {
     return form?.getFieldValue("_file") || "";
   }, [form]);
 
+  const singersRef = useRef<ICollection[]>([]);
+
+  const handleSingersLoaded = useCallback((records: ICollection[]) => {
+    singersRef.current = records;
+  }, []);
+
   const handleCreateLyrics = useCallback(() => {
     setTimeout(() => {
-      LyricsCrudyEmitter.dispatchEvent("open-save-form");
-      LyricsCrudyEmitter.once("save-form-closed", (e) => {
-        form?.setFieldValue("_lyricsIds", e.value?.id ? [e.value.id] : []);
-      });
+      if (!form) {
+        return;
+      }
+
+      const singerIds: ICollection["id"][] =
+        form.getFieldValue("_singerIds") || [];
+      const signersNames = singerIds.length
+        ? `${singerIds
+            .map((id) => singersRef.current.find((i) => i.id === id)?.name)
+            .filter((i) => !!i)
+            .join(" & ")} - `
+        : "";
+
+      const songName = form.getFieldValue("name");
+
+      LyricsCrudyEmitter.dispatchEvent("open-save-form", {
+        name: `${signersNames}${songName}`,
+      } as ILyrics);
+
+      LyricsCrudyEmitter.addEventListener(
+        "save-form-closed",
+        (e) => {
+          const old: IBase["id"][] = form.getFieldValue("_lyricsIds") || [];
+          form.setFieldValue(
+            "_lyricsIds",
+            e.value?.id ? [...old, e.value.id] : old,
+          );
+        },
+        {
+          once: true,
+        },
+      );
     });
   }, [LyricsCrudyEmitter, form]);
 
@@ -564,7 +598,7 @@ export default function Song(): ReactElement {
                 </Flex>
               }
             >
-              <ArtistSelector mode="multiple" />
+              <ArtistSelector mode="multiple" onLoaded={handleSingersLoaded} />
             </Form.Item>
             <Form.Item
               name="_lyricistIds"
