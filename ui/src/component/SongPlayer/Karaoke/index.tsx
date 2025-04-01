@@ -88,6 +88,7 @@ export default function Karaoke({
         <Lyrics
           karaoke
           current={current}
+          offset={currentLyrics.offset}
           content={currentLyrics.content}
           onChange={onChange}
           classNames={LyricsStyles}
