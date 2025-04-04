@@ -21,6 +21,7 @@ import (
 func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 	err := gocrud.New(group, db, gocrud.Crud[model.Song]{
 		DisableSave:     true,
+		EnableGetAll:    true,
 		DefaultPageSize: DefaultPageSize,
 		SearchHandlers: map[string]gocrud.SearchHandler{
 			"like_name":         gocrud.KeywordLike("name", nil),
@@ -29,16 +30,23 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 			"orderBy_index":     gocrud.SortBy("index"),
 			"orderBy_createdAt": gocrud.SortBy("created_at"),
 			"orderBy_updatedAt": gocrud.SortBy("updated_at"),
-			"collectionId": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
+			"in_collectionId": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
 				if ok, value := gocrud.ValuableArray(values); ok {
-					id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(value), 0, 0)
-					if id == 0 {
+					ids := gocrud.IDsFromCommaSeparatedString(value)
+					if len(ids) == 0 {
 						return db
 					}
-					return db.Where("id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id = ?)", id)
+					return db.Where("id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id IN ?)", ids)
 				}
 				return db
 			},
+		},
+		WillGetAll: func(context *gin.Context, db *gorm.DB) *gorm.DB {
+			collectionId := gocrud.IDsFromCommaSeparatedString(context.Query("in_collectionId"))
+			if len(collectionId) == 0 {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "collectionId not found")
+			}
+			return db
 		},
 		OnDelete: gocrud.NewSoftDeleteHandler[model.Song](gocrud.RestCoder),
 		WillSave: func(record *model.Song, context *gin.Context, db *gorm.DB) {

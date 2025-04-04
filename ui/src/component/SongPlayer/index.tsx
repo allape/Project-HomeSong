@@ -22,21 +22,15 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  CollectionSongCrudy,
-  getRandomSongInCollection,
-} from "../../api/collection.ts";
+import { getRandomSongInCollection } from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
   ISongWithCollections,
   SongCrudy,
 } from "../../api/song.ts";
 import useDragger from "../../hook/useDragger.tsx";
-import {
-  ICollection,
-  ICollectionSongSearchParams,
-} from "../../model/collection.ts";
-import { ISong, ISongSearchParams } from "../../model/song.ts";
+import { ICollection } from "../../model/collection.ts";
+import { ISongSearchParams } from "../../model/song.ts";
 import CollectionSelector, {
   ICollectionSelectorProps,
 } from "../CollectionSelector";
@@ -46,8 +40,6 @@ import { IModifiedSong } from "./model.ts";
 import Player from "./Player";
 import PlayerEventEmitter from "./Player/eventemitter.ts";
 import styles from "./style.module.scss";
-
-type PageNumber = number;
 
 export interface ISongPlayerProps {
   song?: ISongWithCollections;
@@ -91,8 +83,6 @@ export default function SongPlayer({
 
   const [scrollContent, scrollContentRef, setScrollContent] =
     useProxy<HTMLDivElement | null>(null);
-  const collectionSongsRef = useRef<ISong["id"][]>([]);
-  const currentRef = useRef<PageNumber>(1);
   const lastScrolledTime = useRef<number>(0);
   const scrollerTimerRef = useRef<number>(-1);
 
@@ -181,23 +171,24 @@ export default function SongPlayer({
     scrollToCurrentSong();
   }, [scrollToCurrentSong, song]);
 
-  const handleNextPage = useCallback(async () => {
+  const handleGetList = useCallback(async () => {
     await execute(async () => {
-      const songs = await SongCrudy.page<ISongSearchParams>(
-        currentRef.current,
-        10000,
-        {
-          in_id: collectionSongsRef.current,
-          orderBy_updatedAt: "desc",
-          orderBy_index: "asc",
-        },
-      );
+      if (!collectionRef.current) {
+        setSongs([]);
+        return;
+      }
+
+      const songs = await SongCrudy.all<ISongSearchParams>({
+        in_collectionId: [collectionRef.current],
+        orderBy_updatedAt: "desc",
+        orderBy_index: "asc",
+      });
 
       const swcs = await fillSongsWithCollections(songs);
 
       setSongs(swcs.map<IModifiedSong>(modifySong));
     });
-  }, [execute, setSongs]);
+  }, [collectionRef, execute, setSongs]);
 
   useEffect(() => {
     if (!songFromProps) {
@@ -215,24 +206,10 @@ export default function SongPlayer({
 
   const handleCollectionChange = useCallback(
     async (id?: ICollection["id"]) => {
-      if (!id) {
-        collectionSongsRef.current = [];
-        setCollection(undefined);
-      } else {
-        await execute(async () => {
-          collectionSongsRef.current = (
-            await CollectionSongCrudy.all<ICollectionSongSearchParams>({
-              in_collectionId: id ? [id] : undefined,
-            })
-          ).map((cs) => cs.songId);
-          setCollection(id);
-        });
-      }
-
-      currentRef.current = 1;
-      await handleNextPage();
+      setCollection(id);
+      await handleGetList();
     },
-    [execute, handleNextPage, setCollection],
+    [handleGetList, setCollection],
   );
 
   const handleChangeSong = useCallback(
@@ -326,6 +303,8 @@ export default function SongPlayer({
     [handleCollectionChange],
   );
 
+  const isKaraokeMode = view === "lyrics";
+
   return (
     <Card
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
@@ -397,8 +376,21 @@ export default function SongPlayer({
         </>
       }
     >
-      <div ref={setScrollContent} className={styles.player}>
-        <div className={cls(styles.header, shadow && styles.shadow)}>
+      <div
+        ref={setScrollContent}
+        className={styles.player}
+        // style={{
+        //   backgroundImage:
+        //     isKaraokeMode && song?._cover ? `url(${song?._cover})` : undefined,
+        // }}
+      >
+        <div
+          className={cls(
+            styles.header,
+            shadow && styles.shadow,
+            isKaraokeMode && styles.karaoke,
+          )}
+        >
           <CollectionSelector
             loading={loading}
             value={collection}
@@ -427,7 +419,7 @@ export default function SongPlayer({
         {view === "list" && (
           <SongList song={song} songs={songs} onChange={setSong} />
         )}
-        {view === "lyrics" && (
+        {isKaraokeMode && (
           <Karaoke current={current} song={song} onChange={seekTo} />
         )}
       </div>
@@ -465,7 +457,9 @@ function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
                 />
               }
               title={<div className={styles.name}>{item._name}</div>}
-              description={item._nonArtistNames || "-"}
+              description={
+                item._nonSingerNames ? `+ ${item._nonSingerNames}` : "-"
+              }
             />
           </List.Item>
         )}

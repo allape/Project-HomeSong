@@ -179,13 +179,13 @@ export default function Song(): ReactElement {
         title: t("collection._"),
         dataIndex: "_nonArtistNames",
         ellipsis: { showTitle: true },
-        filtered: !!searchParams["collectionId"],
+        filtered: !!searchParams["in_collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
           t("song.name"),
           (value) =>
             setSearchParams((old) => ({
               ...old,
-              collectionId: value,
+              in_collectionId: value ? [value] : undefined,
             })),
           (value, onChange) => (
             <CollectionSelector value={value} onChange={onChange} />

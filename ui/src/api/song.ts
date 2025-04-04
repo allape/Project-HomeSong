@@ -97,7 +97,12 @@ export async function fillSongsWithCollections(
       .map((cs) => cs.collectionId);
 
     const nonSingerIds = currentCss
-      .filter((cs) => cs.role !== "singer" && cs.role !== "_")
+      .filter(
+        (cs) =>
+          cs.role !== "singer" &&
+          cs.role !== "_" &&
+          !singerIds.includes(cs.collectionId),
+      )
       .map((cs) => cs.collectionId);
 
     const cs = collections.filter((c) => currentCsIds.includes(c.id));

@@ -36,7 +36,7 @@ export default function CollectionSelector({
       placeholder={`${t("select")} ${t("collection._")}`}
       {...props}
       crudy={CollectionCrudy}
-      pageSize={1000}
+      pageSize={100}
       searchParams={sp}
       searchPropName="keywords"
     />
