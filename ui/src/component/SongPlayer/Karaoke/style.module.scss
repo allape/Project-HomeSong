@@ -1,6 +1,8 @@
 @use "../../../style/mobile";
 
 .wrapper {
+  backdrop-filter: blur(10px) brightness(0.5);
+
   .empty {
     margin: 10dvh 0;
   }
@@ -13,18 +15,23 @@
     gap: 20px;
   }
 
-  .line {
-    padding: 0 15%;
-    @media screen and (max-width: mobile.$max-width) {
-      padding: 0 25%;
+  .karaoke {
+    color: white;
+
+    .line {
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      padding: 0 15%;
+      @media screen and (max-width: mobile.$max-width) {
+        padding: 0 25%;
+      }
     }
   }
 
   .selector {
     position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
     transition: 0.2s;
     opacity: 0.3;
 

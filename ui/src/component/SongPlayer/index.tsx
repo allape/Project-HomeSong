@@ -379,10 +379,10 @@ export default function SongPlayer({
       <div
         ref={setScrollContent}
         className={styles.player}
-        // style={{
-        //   backgroundImage:
-        //     isKaraokeMode && song?._cover ? `url(${song?._cover})` : undefined,
-        // }}
+        style={{
+          backgroundImage:
+            isKaraokeMode && song?._cover ? `url(${song?._cover})` : undefined,
+        }}
       >
         <div
           className={cls(
@@ -458,7 +458,7 @@ function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
               }
               title={<div className={styles.name}>{item._name}</div>}
               description={
-                item._nonSingerNames ? `+ ${item._nonSingerNames}` : "-"
+                item._nonSingerNames ? `+ ${item._nonSingerNames}` : ""
               }
             />
           </List.Item>

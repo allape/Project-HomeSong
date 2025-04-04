@@ -1,6 +1,6 @@
 import { ILV } from "@allape/gocrud-react";
 import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
-import { useLoading, useProxy } from "@allape/use-loading";
+import { useLoading } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Empty, Select } from "antd";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
@@ -12,6 +12,7 @@ import styles from "./style.module.scss";
 
 const LyricsStyles: ILyricsProps["classNames"] = {
   line: styles.line,
+  wrapper: styles.karaoke,
 };
 
 export interface IKaraokeProps {
@@ -33,19 +34,19 @@ export default function Karaoke({
 
   const { loading, execute } = useLoading();
 
-  const [currentLyrics, currentLyricsRef, setCurrentLyrics] = useProxy<
-    ILyrics | undefined
-  >(undefined);
+  const [currentLyrics, setCurrentLyrics] = useState<ILyrics | undefined>(
+    undefined,
+  );
 
   const allLyrics = useRef<ILyrics[]>([]);
   const [options, setOptions] = useState<ILV<ILyrics["id"]>[]>([]);
+  const [isKaraoke, setIsKaraoke] = useState<boolean>(false);
 
-  const handleChange = useCallback(
-    (id: ILyrics["id"]) => {
-      setCurrentLyrics(allLyrics.current.find((i) => i.id === id));
-    },
-    [setCurrentLyrics],
-  );
+  const handleChange = useCallback((id?: ILyrics["id"]) => {
+    const l = id ? allLyrics.current.find((i) => i.id === id) : undefined;
+    setCurrentLyrics(l);
+    setIsKaraoke(!!l?.content && /(\[\d+:\d+(\.\d+)?]){2}/gi.test(l.content));
+  }, []);
 
   useEffect(() => {
     setCurrentLyrics(undefined);
@@ -58,7 +59,7 @@ export default function Karaoke({
       const ls: IModifiedLyrics[] = await getLyrics(song.id);
 
       allLyrics.current = [];
-      setCurrentLyrics(undefined);
+      handleChange(undefined);
       setOptions([]);
 
       if (!ls[0]) {
@@ -70,9 +71,9 @@ export default function Karaoke({
       setOptions(
         ls.map((i) => ({ value: i.id, label: `${t("lyrics._")} - ${i.name}` })),
       );
-      setCurrentLyrics(ls[0]);
+      handleChange(ls[0]?.id);
     }).then();
-  }, [execute, song, currentLyricsRef, setCurrentLyrics, t]);
+  }, [execute, song, t, handleChange]);
 
   return (
     <div className={styles.wrapper}>
@@ -82,11 +83,16 @@ export default function Karaoke({
         </div>
       )}
       {!loading && options.length === 0 && (
-        <Empty className={styles.empty} description={t("player.noLyrics")} />
+        <Empty
+          className={styles.empty}
+          description={
+            <span style={{ color: "white" }}>{t("player.noLyrics")}</span>
+          }
+        />
       )}
       {currentLyrics?.content && (
         <Lyrics
-          karaoke
+          karaoke={isKaraoke}
           current={current}
           offset={currentLyrics.offset}
           content={currentLyrics.content}
