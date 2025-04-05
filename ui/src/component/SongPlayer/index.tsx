@@ -22,7 +22,6 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { getRandomSongInCollection } from "../../api/collection.ts";
 import {
   fillSongsWithCollections,
   ISongWithCollections,
@@ -101,7 +100,7 @@ export default function SongPlayer({
 
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  const [current] = useRAFAudioTime(audio);
+  const [current, setCurrent] = useRAFAudioTime(audio);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
@@ -214,22 +213,17 @@ export default function SongPlayer({
 
   const handleChangeSong = useCallback(
     (delta: number) => {
+      setCurrent(0);
       switch (loopRef.current) {
         case "shuffle":
-          execute(async () => {
-            const song = await getRandomSongInCollection(
-              collectionRef.current || 0,
-            );
-            let index = songsRef.current.findIndex((s) => s.id === song.id);
-            if (songRef.current?.id === song.id) {
-              index += 1;
-              if (index >= songsRef.current.length) {
-                index = 0;
-              }
+          setSong((old) => {
+            const index = (songsRef.current.length * Math.random()) >> 0;
+            let next = songsRef.current[index];
+            if (next === old) {
+              next = songsRef.current[(index + 1) % songsRef.current.length];
             }
-            const nextSong = songsRef.current[index];
-            setSong(nextSong);
-          }).then();
+            return next;
+          });
           return;
         case "no":
           return;
@@ -258,7 +252,7 @@ export default function SongPlayer({
         }
       }
     },
-    [collectionRef, execute, loopRef, setSong, songRef, songsRef],
+    [loopRef, setCurrent, setSong, songRef, songsRef],
   );
 
   const handlePrev = useCallback(() => {
@@ -376,18 +370,11 @@ export default function SongPlayer({
         </>
       }
     >
-      <div
-        ref={setScrollContent}
-        className={styles.player}
-        style={{
-          backgroundImage:
-            isKaraokeMode && song?._cover ? `url(${song?._cover})` : undefined,
-        }}
-      >
+      <div className={styles.player}>
         <div
           className={cls(
             styles.header,
-            shadow && styles.shadow,
+            shadow && !isKaraokeMode && styles.shadow,
             isKaraokeMode && styles.karaoke,
           )}
         >
@@ -416,12 +403,23 @@ export default function SongPlayer({
             onPrev={handlePrev}
           />
         </div>
-        {view === "list" && (
-          <SongList song={song} songs={songs} onChange={setSong} />
-        )}
-        {isKaraokeMode && (
-          <Karaoke current={current} song={song} onChange={seekTo} />
-        )}
+        <div
+          ref={setScrollContent}
+          className={cls(styles.body, isKaraokeMode && styles.karaoke)}
+          style={{
+            backgroundImage:
+              isKaraokeMode && !!song?._cover
+                ? `url(${song?._cover})`
+                : undefined,
+          }}
+        >
+          {view === "list" && (
+            <SongList song={song} songs={songs} onChange={setSong} />
+          )}
+          {isKaraokeMode && (
+            <Karaoke current={current} song={song} onChange={seekTo} />
+          )}
+        </div>
       </div>
     </Card>
   );

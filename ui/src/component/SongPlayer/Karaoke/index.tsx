@@ -11,8 +11,9 @@ import { ISong } from "../../../model/song.ts";
 import styles from "./style.module.scss";
 
 const LyricsStyles: ILyricsProps["classNames"] = {
-  line: styles.line,
   wrapper: styles.karaoke,
+  line: styles.line,
+  mask: styles.mask,
 };
 
 export interface IKaraokeProps {

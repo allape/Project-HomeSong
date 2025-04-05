@@ -15,5 +15,9 @@
     flex-wrap: nowrap;
     justify-content: stretch;
     align-items: stretch;
+
+    & > audio {
+      max-height: 40px;
+    }
   }
 }

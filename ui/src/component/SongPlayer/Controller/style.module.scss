@@ -7,7 +7,6 @@
   flex-wrap: nowrap;
 
   .button {
-    margin: 10px;
     transition: 0.25s;
     padding: 20px;
 
@@ -16,11 +15,11 @@
     }
 
     &:active {
-      scale: 2;
+      scale: 1.2;
     }
 
     & > :global(.anticon) {
-      scale: 2;
+      scale: 1.8;
     }
   }
 }
