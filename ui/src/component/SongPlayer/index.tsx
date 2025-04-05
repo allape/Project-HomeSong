@@ -297,6 +297,12 @@ export default function SongPlayer({
     [handleCollectionChange],
   );
 
+  useEffect(() => {
+    if (songRef.current && view === "list") {
+      scrollToCurrentSong();
+    }
+  }, [scrollToCurrentSong, songRef, view]);
+
   const isKaraokeMode = view === "lyrics";
 
   return (
@@ -370,7 +376,13 @@ export default function SongPlayer({
         </>
       }
     >
-      <div className={styles.player}>
+      <div className={styles.player} ref={setScrollContent}>
+        <div
+          className={styles.bg}
+          style={{
+            backgroundImage: song?._cover ? `url(${song?._cover})` : undefined,
+          }}
+        ></div>
         <div
           className={cls(
             styles.header,
@@ -403,16 +415,7 @@ export default function SongPlayer({
             onPrev={handlePrev}
           />
         </div>
-        <div
-          ref={setScrollContent}
-          className={cls(styles.body, isKaraokeMode && styles.karaoke)}
-          style={{
-            backgroundImage:
-              isKaraokeMode && !!song?._cover
-                ? `url(${song?._cover})`
-                : undefined,
-          }}
-        >
+        <div className={styles.body}>
           {view === "list" && (
             <SongList song={song} songs={songs} onChange={setSong} />
           )}
@@ -456,7 +459,9 @@ function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
               }
               title={<div className={styles.name}>{item._name}</div>}
               description={
-                item._nonSingerNames ? `+ ${item._nonSingerNames}` : ""
+                <span className={styles.description}>
+                  {item._nonSingerNames ? `+ ${item._nonSingerNames}` : ""}
+                </span>
               }
             />
           </List.Item>

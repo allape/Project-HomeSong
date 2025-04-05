@@ -1,13 +1,33 @@
 @use "../../../style/mobile";
 
+@keyframes FadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@mixin FadeIn {
+  animation-name: FadeIn;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in-out;
+}
+
 .wrapper {
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   position: relative;
 
   .empty {
-    padding: 10vh 0;
-    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: transparent;
+    height: 100vh;
+    @include FadeIn;
   }
 
   .loadingText {
@@ -16,6 +36,9 @@
     align-items: center;
     flex-wrap: nowrap;
     gap: 20px;
+    color: white;
+    height: 100vh;
+    @include FadeIn;
   }
 
   .karaoke {
@@ -41,6 +64,7 @@
     width: calc(100% - 20px);
     transition: 0.2s;
     opacity: 0.3;
+    text-shadow: none;
 
     &:hover {
       opacity: 1;

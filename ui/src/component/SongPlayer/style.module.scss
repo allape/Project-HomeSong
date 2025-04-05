@@ -34,6 +34,8 @@
   & > :global(.ant-card-body) {
     padding: 0;
     height: calc(100dvh - 60px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   @include mobile.Mobile;
@@ -77,10 +79,19 @@
   }
 
   .player {
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    position: relative;
+
+    .bg {
+      background-repeat: repeat-y;
+      background-size: contain;
+      background-color: #fff;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      filter: blur(10px) brightness(0.5);
+    }
 
     .header {
       padding: 5px 10px;
@@ -105,36 +116,17 @@
 
       &.karaoke {
         background: transparent;
-
-        & > * {
-          opacity: 0.3;
-          transition: 0.2s opacity;
-        }
+        opacity: 0.3;
+        transition: 0.2s opacity;
 
         &:hover {
-          & > * {
-            opacity: 1;
-          }
+          opacity: 1;
         }
       }
     }
 
     .body {
-      background-repeat: repeat-y;
-      background-size: contain;
       position: relative;
-
-      &.karaoke {
-        &::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          backdrop-filter: blur(10px) brightness(0.5);
-        }
-      }
     }
 
     .list {
@@ -152,26 +144,27 @@
         }
 
         &.playing {
-          background-color: #ccc;
+          background: rgba(255, 255, 255, 0.3);
         }
 
         &:hover {
-          background-color: #ddd;
+          background: rgba(255, 255, 255, 0.1);
         }
 
-        @media (prefers-color-scheme: dark) {
-          &.playing {
-            background-color: #444;
-          }
-
-          &:hover {
-            background-color: #333;
-          }
+        @mixin Color {
+          text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+          color: white;
         }
 
         .name {
+          @include Color;
           white-space: pre-wrap;
           word-break: break-all;
+        }
+
+        .description {
+          @include Color;
+          opacity: 0.6;
         }
       }
     }

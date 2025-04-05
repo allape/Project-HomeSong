@@ -38,6 +38,7 @@ export default function Karaoke({
   const [currentLyrics, setCurrentLyrics] = useState<ILyrics | undefined>(
     undefined,
   );
+  const [anchor, setAnchor] = useState<HTMLDivElement | null>(null);
 
   const allLyrics = useRef<ILyrics[]>([]);
   const [options, setOptions] = useState<ILV<ILyrics["id"]>[]>([]);
@@ -76,20 +77,32 @@ export default function Karaoke({
     }).then();
   }, [execute, song, t, handleChange]);
 
+  useEffect(() => {
+    if (!anchor) {
+      return;
+    }
+
+    anchor.scrollIntoView({
+      block: "center",
+    });
+  }, [anchor, song]);
+
   return (
     <div className={styles.wrapper}>
+      <div ref={setAnchor}></div>
       {loading && (
         <div className={styles.loadingText}>
           <LoadingOutlined /> {t("player.loadingLyrics")}
         </div>
       )}
       {!loading && options.length === 0 && (
-        <Empty
-          className={styles.empty}
-          description={
-            <span style={{ color: "white" }}>{t("player.noLyrics")}</span>
-          }
-        />
+        <div className={styles.empty}>
+          <Empty
+            description={
+              <span style={{ color: "white" }}>{t("player.noLyrics")}</span>
+            }
+          />
+        </div>
       )}
       {currentLyrics?.content && (
         <Lyrics
