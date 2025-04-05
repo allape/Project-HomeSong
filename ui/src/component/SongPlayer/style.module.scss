@@ -29,13 +29,18 @@
 
   & > :global(.ant-card-head) {
     border-bottom: 0;
+    position: relative;
+    height: 56px !important;
+    overflow: hidden !important;
   }
 
   & > :global(.ant-card-body) {
     padding: 0;
-    height: calc(100dvh - 60px);
-    overflow-y: auto;
-    overflow-x: hidden;
+    height: calc(100dvh - 80px);
+    position: relative;
+    @media screen and (max-width: mobile.$max-width) {
+      height: calc(100dvh - 56px);
+    }
   }
 
   @include mobile.Mobile;
@@ -78,93 +83,104 @@
     }
   }
 
-  .player {
-    position: relative;
+  .bg {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0.5);
 
-    .bg {
-      background-repeat: repeat-y;
-      background-size: contain;
-      background-color: #fff;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      filter: blur(10px) brightness(0.5);
+    @media (prefers-color-scheme: dark) {
+      filter: brightness(0.2);
     }
 
-    .header {
-      padding: 5px 10px;
-      position: sticky;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      background-color: white;
-      box-shadow: none;
-      transition: 0.25s;
+    &.hasCover {
+      filter: blur(10px) brightness(0.8);
 
       @media (prefers-color-scheme: dark) {
-        background-color: #141414;
-      }
-
-      &.shadow {
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        @media (prefers-color-scheme: dark) {
-          box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
-        }
-      }
-
-      &.karaoke {
-        background: transparent;
-        opacity: 0.3;
-        transition: 0.2s opacity;
-
-        &:hover {
-          opacity: 1;
-        }
+        filter: blur(10px) brightness(0.5);
       }
     }
+  }
 
-    .body {
+  .container {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    .player {
       position: relative;
-    }
 
-    .list {
-      user-select: none;
-      flex: 1;
+      .header {
+        padding: 5px 10px;
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        background-color: rgba(255, 255, 255, 0.5);
+        transition: 0.25s;
 
-      .song {
-        border-radius: 10px;
-        padding: 10px;
-        cursor: pointer;
-        border-bottom: 0;
-
-        &:not(:last-child) {
-          margin-bottom: 4px;
+        @media (prefers-color-scheme: dark) {
+          background-color: rgba(0, 0, 0, 0.5);
         }
 
-        &.playing {
-          background: rgba(255, 255, 255, 0.3);
-        }
+        &.karaoke {
+          background: transparent;
+          opacity: 0.3;
+          transition: 0.2s opacity;
 
-        &:hover {
-          background: rgba(255, 255, 255, 0.1);
+          &:hover {
+            opacity: 1;
+          }
         }
+      }
 
-        @mixin Color {
-          text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-          color: white;
-        }
+      .body {
+        position: relative;
+      }
 
-        .name {
-          @include Color;
-          white-space: pre-wrap;
-          word-break: break-all;
-        }
+      .list {
+        user-select: none;
+        flex: 1;
 
-        .description {
-          @include Color;
-          opacity: 0.6;
+        .song {
+          border-radius: 10px;
+          padding: 10px;
+          cursor: pointer;
+          border-bottom: 0;
+
+          &:not(:last-child) {
+            margin-bottom: 4px;
+          }
+
+          &.playing {
+            background: rgba(255, 255, 255, 0.3);
+          }
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+
+          @mixin Color {
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            color: white;
+          }
+
+          .name {
+            @include Color;
+            white-space: pre-wrap;
+            word-break: break-all;
+          }
+
+          .description {
+            @include Color;
+            opacity: 0.6;
+          }
         }
       }
     }

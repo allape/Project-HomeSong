@@ -80,14 +80,8 @@ export default function SongPlayer({
 
   const PEE = useMemo(() => new PlayerEventEmitter(), []);
 
-  const [scrollContent, scrollContentRef, setScrollContent] =
-    useProxy<HTMLDivElement | null>(null);
-  const lastScrolledTime = useRef<number>(0);
-  const scrollerTimerRef = useRef<number>(-1);
-
   const [view, setView] = useState<"lyrics" | "list">("list");
   const [collapsed, setCollapsed] = useState<boolean>(false);
-  const [shadow, setShadow] = useState<boolean>(false);
 
   const [collection, collectionRef, setCollection] = useProxy<
     ICollection["id"] | undefined
@@ -113,37 +107,10 @@ export default function SongPlayer({
   );
 
   useEffect(() => {
-    return () => {
-      clearTimeout(scrollerTimerRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
     if (isMobile) {
       setCollapsed(false);
     }
   }, [isMobile]);
-
-  const checkShadow = useCallback(() => {
-    if (scrollContentRef.current?.parentElement) {
-      setShadow(scrollContentRef.current.parentElement.scrollTop !== 0);
-    }
-    lastScrolledTime.current = performance.now();
-  }, [scrollContentRef]);
-
-  useEffect(() => {
-    const parent = scrollContent?.parentElement;
-    if (!parent) {
-      return;
-    }
-    const handleScroll = () => {
-      checkShadow();
-    };
-    parent.addEventListener("scroll", handleScroll);
-    return () => {
-      parent.removeEventListener("scroll", handleScroll);
-    };
-  }, [checkShadow, scrollContent]);
 
   const scrollToCurrentSong = useCallback(() => {
     document
@@ -152,23 +119,7 @@ export default function SongPlayer({
         behavior: "smooth",
         block: "center",
       });
-    clearTimeout(scrollerTimerRef.current);
-    scrollerTimerRef.current = setTimeout(() => {
-      checkShadow();
-    }, 500) as unknown as number;
-  }, [checkShadow, songRef]);
-
-  useEffect(() => {
-    if (!song) {
-      return;
-    }
-
-    if (performance.now() - lastScrolledTime.current < 100) {
-      return;
-    }
-
-    scrollToCurrentSong();
-  }, [scrollToCurrentSong, song]);
+  }, [songRef]);
 
   const handleGetList = useCallback(async () => {
     await execute(async () => {
@@ -376,52 +327,48 @@ export default function SongPlayer({
         </>
       }
     >
-      <div className={styles.player} ref={setScrollContent}>
-        <div
-          className={styles.bg}
-          style={{
-            backgroundImage: song?._cover ? `url(${song?._cover})` : undefined,
-          }}
-        ></div>
-        <div
-          className={cls(
-            styles.header,
-            shadow && !isKaraokeMode && styles.shadow,
-            isKaraokeMode && styles.karaoke,
-          )}
-        >
-          <CollectionSelector
-            loading={loading}
-            value={collection}
-            onChange={handleCollectionChange}
-            allowClear
-            onLoaded={handleCollectionsLoaded}
-          ></CollectionSelector>
-          <Player
-            song={song}
-            emitter={PEE}
-            onChange={setPlaying}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onDurationChange={setDuration}
-            onAudioOk={handleAudioOk}
-          />
-          <Controller
-            view={view}
-            onViewChange={setView}
-            loop={loop}
-            onLoopChange={handleLoopChange}
-            onNext={handleNext}
-            onPrev={handlePrev}
-          />
-        </div>
-        <div className={styles.body}>
-          {view === "list" && (
-            <SongList song={song} songs={songs} onChange={setSong} />
-          )}
-          {isKaraokeMode && (
-            <Karaoke current={current} song={song} onChange={seekTo} />
-          )}
+      <div
+        className={cls(styles.bg, song?._cover && styles.hasCover)}
+        style={{
+          backgroundImage: song?._cover ? `url(${song?._cover})` : undefined,
+        }}
+      ></div>
+      <div className={styles.container}>
+        <div className={styles.player}>
+          <div className={cls(styles.header, isKaraokeMode && styles.karaoke)}>
+            <CollectionSelector
+              loading={loading}
+              value={collection}
+              onChange={handleCollectionChange}
+              allowClear
+              onLoaded={handleCollectionsLoaded}
+            ></CollectionSelector>
+            <Player
+              song={song}
+              emitter={PEE}
+              onChange={setPlaying}
+              onNext={handleNext}
+              onPrev={handlePrev}
+              onDurationChange={setDuration}
+              onAudioOk={handleAudioOk}
+            />
+            <Controller
+              view={view}
+              onViewChange={setView}
+              loop={loop}
+              onLoopChange={handleLoopChange}
+              onNext={handleNext}
+              onPrev={handlePrev}
+            />
+          </div>
+          <div className={styles.body}>
+            {view === "list" && (
+              <SongList song={song} songs={songs} onChange={setSong} />
+            )}
+            {isKaraokeMode && (
+              <Karaoke current={current} song={song} onChange={seekTo} />
+            )}
+          </div>
         </div>
       </div>
     </Card>
