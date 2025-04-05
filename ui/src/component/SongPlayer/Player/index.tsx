@@ -149,21 +149,29 @@ export default function Player({
       }
     };
 
-    const handleSeek: EEEventListener = (time) => {
+    const handleSeekTo: EEEventListener = (time) => {
       if (!audioRef.current) {
         return;
       }
       audioRef.current.currentTime = time.value as number;
     };
+    const handleSeek: EEEventListener = (time) => {
+      if (!audioRef.current) {
+        return;
+      }
+      audioRef.current.currentTime += time.value as number;
+    };
 
     emitter.addEventListener("play", handlePlay);
     emitter.addEventListener("pause", handlePause);
     emitter.addEventListener("stop", handleStop);
+    emitter.addEventListener("seekTo", handleSeekTo);
     emitter.addEventListener("seek", handleSeek);
     return () => {
       emitter.removeEventListener("play", handlePlay);
       emitter.removeEventListener("pause", handlePause);
       emitter.removeEventListener("stop", handleStop);
+      emitter.removeEventListener("seekTo", handleSeekTo);
       emitter.removeEventListener("seek", handleSeek);
     };
   }, [audioRef, emitter]);

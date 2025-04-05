@@ -80,6 +80,8 @@ export default function SongPlayer({
 
   const PEE = useMemo(() => new PlayerEventEmitter(), []);
 
+  const [wrapper, setWrapper] = useState<HTMLDivElement | null>(null);
+
   const [view, setView] = useState<"lyrics" | "list">("list");
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
@@ -226,7 +228,7 @@ export default function SongPlayer({
 
   const seekTo = useCallback(
     (c: TimePoint) => {
-      PEE.dispatchEvent("seek", c / 1000);
+      PEE.dispatchEvent("seekTo", c / 1000);
     },
     [PEE],
   );
@@ -254,10 +256,59 @@ export default function SongPlayer({
     }
   }, [scrollToCurrentSong, songRef, view]);
 
+  useEffect(() => {
+    if (collapsed || !wrapper) {
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      let touched = false;
+      switch (e.key) {
+        case " ":
+          touched = true;
+          if (playingRef.current) {
+            PEE.dispatchEvent("pause");
+          } else {
+            PEE.dispatchEvent("play");
+          }
+          break;
+        case "ArrowRight":
+          touched = true;
+          if (e.ctrlKey || e.metaKey) {
+            handleNext();
+          } else {
+            PEE.dispatchEvent("seek", 5);
+          }
+          break;
+        case "ArrowLeft":
+          touched = true;
+          if (e.ctrlKey || e.metaKey) {
+            handlePrev();
+          } else {
+            PEE.dispatchEvent("seek", -5);
+          }
+          break;
+      }
+
+      if (touched) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    wrapper.addEventListener("keydown", handleKeyDown);
+    return () => {
+      wrapper.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [PEE, collapsed, handleNext, handlePrev, playingRef, wrapper]);
+
   const isKaraokeMode = view === "lyrics";
 
   return (
     <Card
+      tabIndex={0}
+      autoFocus
+      ref={setWrapper}
       className={cls(styles.wrapper, collapsed && styles.collapsed)}
       style={{ left: `${x}px`, top: `${y}px` }}
       title={
