@@ -54,12 +54,10 @@ export default function CollectionCrudyButton(
       {
         title: t("id"),
         dataIndex: "id",
-        width: 100,
       },
       {
         title: t("collection.index"),
         dataIndex: "index",
-        ellipsis: true,
       },
       {
         title: t("collection.type"),
@@ -89,7 +87,6 @@ export default function CollectionCrudyButton(
       {
         title: t("collection.cover"),
         dataIndex: "cover",
-        width: 100,
         align: "center",
         render: (v, record) => {
           const shape: AvatarProps["shape"] =

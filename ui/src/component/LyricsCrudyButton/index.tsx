@@ -48,17 +48,14 @@ export default function LyricsCrudyButton(
       {
         title: t("id"),
         dataIndex: "id",
-        width: 100,
       },
       {
         title: t("lyrics.index"),
         dataIndex: "index",
-        ellipsis: true,
       },
       {
         title: t("lyrics.offset"),
         dataIndex: "offset",
-        ellipsis: true,
       },
       {
         title: t("lyrics.name"),

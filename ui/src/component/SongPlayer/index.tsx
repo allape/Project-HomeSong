@@ -1,3 +1,4 @@
+import { BaseSearchParams } from "@allape/gocrud";
 import { config, Flex, useMobile } from "@allape/gocrud-react";
 import { TimePoint, useRAFAudioTime } from "@allape/lyrics";
 import { useLoading, useProxy } from "@allape/use-loading";
@@ -131,6 +132,7 @@ export default function SongPlayer({
       }
 
       const songs = await SongCrudy.all<ISongSearchParams>({
+        ...BaseSearchParams,
         in_collectionId: [collectionRef.current],
         orderBy_updatedAt: "desc",
         orderBy_index: "asc",
