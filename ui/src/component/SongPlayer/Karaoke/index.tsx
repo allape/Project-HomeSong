@@ -108,7 +108,6 @@ export default function Karaoke({
         <Lyrics
           karaoke={isKaraoke}
           current={current}
-          offset={currentLyrics.offset}
           content={currentLyrics.content}
           onChange={onChange}
           classNames={LyricsStyles}

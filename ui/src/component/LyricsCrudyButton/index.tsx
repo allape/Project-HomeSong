@@ -54,10 +54,6 @@ export default function LyricsCrudyButton(
         dataIndex: "index",
       },
       {
-        title: t("lyrics.offset"),
-        dataIndex: "offset",
-      },
-      {
         title: t("lyrics.name"),
         dataIndex: "name",
         render: (v) => (
@@ -145,15 +141,6 @@ export default function LyricsCrudyButton(
           step={1}
           precision={0}
           placeholder={t("lyrics.index")}
-        />
-      </Form.Item>
-      <Form.Item name="offset" label={t("lyrics.offset")}>
-        <InputNumber
-          min={-1_000_000}
-          max={1_000_000}
-          step={1}
-          precision={0}
-          placeholder={t("lyrics.offset")}
         />
       </Form.Item>
       <Form.Item

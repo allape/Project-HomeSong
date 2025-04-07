@@ -3,7 +3,6 @@ import { IBase, IBaseSearchParams } from "@allape/gocrud";
 export interface ILyrics extends IBase {
   name: string;
   content: string;
-  offset: number;
   description: string;
   index: number;
 }
