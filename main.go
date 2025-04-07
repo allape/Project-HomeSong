@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"github.com/allape/gocrud"
 	"github.com/allape/gogger"
 	"github.com/allape/homesong/asset"
@@ -9,11 +10,19 @@ import (
 	"github.com/allape/homesong/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"strings"
 	"time"
 )
+
+//go:embed ui/dist/index.html
+var StandaloneIndexHTML []byte
 
 var l = gogger.New("main")
 
@@ -23,13 +32,27 @@ func main() {
 		l.Error().Fatalf("Failed to init logger: %v", err)
 	}
 
-	db, err := gorm.Open(mysql.Open(env.DatabaseDSN), &gorm.Config{
-		Logger: logger.New(gogger.New("db").Debug(), logger.Config{
-			SlowThreshold: 200 * time.Millisecond,
-			LogLevel:      logger.Info,
-			Colorful:      true,
-		}),
-	})
+	var db *gorm.DB
+
+	if env.Standalone {
+		l.Info().Println("Standalone mode, using SQLite")
+
+		err = os.MkdirAll(path.Dir(env.StandaloneDatabaseDSN), 0755)
+		if err != nil {
+			l.Error().Fatalf("Failed to create database directory: %v", err)
+		}
+
+		db, err = gorm.Open(sqlite.Open(env.StandaloneDatabaseDSN))
+	} else {
+		l.Info().Println("Using MySQL")
+		db, err = gorm.Open(mysql.Open(env.DatabaseDSN), &gorm.Config{
+			Logger: logger.New(gogger.New("db").Debug(), logger.Config{
+				SlowThreshold: 200 * time.Millisecond,
+				LogLevel:      logger.Info,
+				Colorful:      true,
+			}),
+		})
+	}
 	if err != nil {
 		l.Error().Fatalf("Failed to open database: %v", err)
 	}
@@ -66,18 +89,30 @@ func main() {
 		l.Error().Fatalf("Failed to setup lyrics controller: %v", err)
 	}
 
-	err = gocrud.NewSingleHTMLServe(engine.Group("/ui"), env.UIFolder, &gocrud.SingleHTMLServeConfig{
-		AllowReplace: true,
-	})
-	if err != nil {
-		l.Error().Fatalf("Failed to setup single html serve: %v", err)
-	}
-
 	err = gocrud.NewHttpFileSystem(engine.Group("/static"), env.StaticFolder, &gocrud.HttpFileSystemConfig{
 		AllowOverwrite: false,
 		AllowUpload:    true,
 		EnableDigest:   true,
 	})
+
+	hasUIFolder := false
+	_, err = os.Stat(env.UIFolder)
+	if err == nil {
+		hasUIFolder = true
+	}
+
+	if env.Standalone && !hasUIFolder {
+		engine.GET("/ui/:any", func(context *gin.Context) {
+			context.Data(http.StatusOK, "text/html; charset=utf-8", StandaloneIndexHTML)
+		})
+	} else {
+		err = gocrud.NewSingleHTMLServe(engine.Group("/ui"), env.UIFolder, &gocrud.SingleHTMLServeConfig{
+			AllowReplace: true,
+		})
+		if err != nil {
+			l.Error().Fatalf("Failed to setup single html serve: %v", err)
+		}
+	}
 
 	engine.GET("/", func(context *gin.Context) {
 		context.Redirect(http.StatusMovedPermanently, "/ui/")
@@ -92,6 +127,14 @@ func main() {
 			l.Error().Fatalf("Failed to start http server: %v", err)
 		}
 	}()
+
+	if env.Standalone {
+		addr := env.BindAddr
+		if strings.HasPrefix(addr, ":") {
+			addr = "http://localhost" + addr
+		}
+		_ = exec.Command("open", addr).Start()
+	}
 
 	gogger.New("ctrl-c").Info().Println("Exiting with", gocrud.Wait4CtrlC())
 }
