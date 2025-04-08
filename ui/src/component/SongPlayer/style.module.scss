@@ -130,13 +130,28 @@
           background-color: rgba(0, 0, 0, 0.5);
         }
 
+        .form {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: stretch;
+          gap: 4px;
+          height: auto;
+          transition: 0.2s;
+        }
+
         &.karaoke {
           background: transparent;
           opacity: 0.3;
-          transition: 0.2s opacity;
+          padding-top: 0;
 
           &:hover {
             opacity: 1;
+          }
+
+          .form {
+            height: 0;
+            overflow: hidden;
           }
         }
       }

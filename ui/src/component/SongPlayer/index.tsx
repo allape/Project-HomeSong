@@ -12,7 +12,7 @@ import {
   ShrinkOutlined,
   StepForwardOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Card, List } from "antd";
+import { Avatar, Button, Card, Input, List } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -89,7 +89,18 @@ export default function SongPlayer({
   const [collection, collectionRef, setCollection] = useProxy<
     ICollection["id"] | undefined
   >(undefined);
+
+  const [keyword, setKeyword] = useState<string>("");
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
+
+  const renderingSongs = useMemo(() => {
+    if (!keyword) {
+      return songs;
+    }
+    return songs.filter((s) =>
+      s._name.toLowerCase().includes(keyword.toLowerCase()),
+    );
+  }, [keyword, songs]);
 
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
@@ -264,6 +275,10 @@ export default function SongPlayer({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) {
+        return;
+      }
+
       let touched = false;
       switch (e.key) {
         case " ":
@@ -389,13 +404,21 @@ export default function SongPlayer({
       <div className={styles.container}>
         <div className={styles.player}>
           <div className={cls(styles.header, isKaraokeMode && styles.karaoke)}>
-            <CollectionSelector
-              loading={loading}
-              value={collection}
-              onChange={handleCollectionChange}
-              allowClear
-              onLoaded={handleCollectionsLoaded}
-            ></CollectionSelector>
+            <div className={styles.form}>
+              <CollectionSelector
+                loading={loading}
+                value={collection}
+                onChange={handleCollectionChange}
+                allowClear
+                onLoaded={handleCollectionsLoaded}
+              ></CollectionSelector>
+              <Input
+                placeholder={t("player.search")}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                allowClear
+              />
+            </div>
             <Player
               song={song}
               emitter={PEE}
@@ -416,7 +439,7 @@ export default function SongPlayer({
           </div>
           <div className={styles.body}>
             {view === "list" && (
-              <SongList song={song} songs={songs} onChange={setSong} />
+              <SongList song={song} songs={renderingSongs} onChange={setSong} />
             )}
             {isKaraokeMode && (
               <Karaoke current={current} song={song} onChange={seekTo} />

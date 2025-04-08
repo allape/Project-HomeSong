@@ -112,7 +112,7 @@ export default function Song(): ReactElement {
   }));
   const [form, setForm] = useState<FormInstance<IRecord> | undefined>();
   const [playerVisible, setPlayerVisible] = useState<boolean>(
-    () => window.innerWidth < 400,
+    () => window.innerWidth <= 600,
   );
   const [songForPlay, setSongForPlay] = useState<
     ISongWithCollections | undefined
