@@ -90,17 +90,36 @@ export default function SongPlayer({
     ICollection["id"] | undefined
   >(undefined);
 
-  const [keyword, setKeyword] = useState<string>("");
+  const [keyword, keywordRef, setKeyword] = useProxy<string>("");
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
+  const [renderingSongs, setRenderingSongs] = useState<IModifiedSong[]>([]);
 
-  const renderingSongs = useMemo(() => {
-    if (!keyword) {
-      return songs;
-    }
-    return songs.filter((s) =>
-      s._name.toLowerCase().includes(keyword.toLowerCase()),
-    );
-  }, [keyword, songs]);
+  const renderSongsTimerRef = useRef<number>(-1);
+  const renderSongs = useCallback(() => {
+    clearTimeout(renderSongsTimerRef.current);
+
+    renderSongsTimerRef.current = setTimeout(() => {
+      if (!keywordRef.current) {
+        setRenderingSongs(songsRef.current);
+      }
+
+      setRenderingSongs(
+        songsRef.current.filter((s) =>
+          s._name.toLowerCase().includes(keywordRef.current.toLowerCase()),
+        ),
+      );
+    }, 300) as unknown as number;
+  }, [keywordRef, songsRef]);
+
+  useEffect(() => {
+    renderSongs();
+  }, [songs, keyword, renderSongs]);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(renderSongsTimerRef.current);
+    };
+  }, []);
 
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
@@ -108,7 +127,7 @@ export default function SongPlayer({
 
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  const [current, setCurrent] = useRAFAudioTime(audio);
+  const [current] = useRAFAudioTime(audio);
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
@@ -179,7 +198,6 @@ export default function SongPlayer({
 
   const handleChangeSong = useCallback(
     (delta: number) => {
-      setCurrent(0);
       switch (loopRef.current) {
         case "shuffle":
           setSong((old) => {
@@ -218,7 +236,7 @@ export default function SongPlayer({
         }
       }
     },
-    [loopRef, setCurrent, setSong, songRef, songsRef],
+    [loopRef, setSong, songRef, songsRef],
   );
 
   const handlePrev = useCallback(() => {
