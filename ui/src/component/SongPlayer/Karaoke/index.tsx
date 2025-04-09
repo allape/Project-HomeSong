@@ -87,6 +87,27 @@ export default function Karaoke({
     });
   }, [anchor, song]);
 
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        wakeLock = await navigator.wakeLock.request("screen");
+      } else {
+        await wakeLock?.release();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    handleVisibilityChange().then();
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      wakeLock?.release().then();
+    };
+  }, []);
+
   return (
     <div className={styles.wrapper}>
       <div ref={setAnchor}></div>
