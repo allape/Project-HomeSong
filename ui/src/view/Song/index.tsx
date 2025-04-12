@@ -466,8 +466,17 @@ export default function Song(): ReactElement {
     });
   }, [LyricsCrudyEmitter, form]);
 
-  const handleKeywordsBlur = useCallback(() => {
+  const lastSearchedKeywordsRef = useRef<string>("");
+
+  const handleKeywordsSearch = useCallback(() => {
     const kw = keywordsRef.current.trim();
+
+    if (kw === lastSearchedKeywordsRef.current) {
+      return;
+    }
+
+    lastSearchedKeywordsRef.current = kw;
+
     if (!kw) {
       setSearchParams((old) => {
         delete old.like_name;
@@ -521,7 +530,8 @@ export default function Song(): ReactElement {
               placeholder={t("songSearch")}
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
-              onBlur={handleKeywordsBlur}
+              onBlur={handleKeywordsSearch}
+              onPressEnter={handleKeywordsSearch}
             />
           </div>
         }
