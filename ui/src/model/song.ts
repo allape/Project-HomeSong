@@ -15,6 +15,7 @@ export interface ISong extends IBase {
 
 export interface ISongSearchParams extends IBaseSearchParams {
   like_name?: string;
+  like_collectionName?: string;
   in_id?: ISong["id"][];
   in_collectionId?: ICollection["id"][];
   orderBy_index?: "desc" | "asc";

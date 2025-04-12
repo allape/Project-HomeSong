@@ -34,6 +34,14 @@ func main() {
 
 	var db *gorm.DB
 
+	gormConfig := &gorm.Config{
+		Logger: logger.New(gogger.New("db").Debug(), logger.Config{
+			SlowThreshold: 200 * time.Millisecond,
+			LogLevel:      logger.Info,
+			Colorful:      true,
+		}),
+	}
+
 	if env.Standalone {
 		l.Info().Println("Standalone mode, using SQLite")
 
@@ -42,16 +50,10 @@ func main() {
 			l.Error().Fatalf("Failed to create database directory: %v", err)
 		}
 
-		db, err = gorm.Open(sqlite.Open(env.StandaloneDatabaseDSN))
+		db, err = gorm.Open(sqlite.Open(env.StandaloneDatabaseDSN), gormConfig)
 	} else {
 		l.Info().Println("Using MySQL")
-		db, err = gorm.Open(mysql.Open(env.DatabaseDSN), &gorm.Config{
-			Logger: logger.New(gogger.New("db").Debug(), logger.Config{
-				SlowThreshold: 200 * time.Millisecond,
-				LogLevel:      logger.Info,
-				Colorful:      true,
-			}),
-		})
+		db, err = gorm.Open(mysql.Open(env.DatabaseDSN), gormConfig)
 	}
 	if err != nil {
 		l.Error().Fatalf("Failed to open database: %v", err)

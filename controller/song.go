@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/allape/gocrud"
 	"github.com/allape/homesong/env"
 	"github.com/allape/homesong/ffmpeg"
@@ -37,6 +38,18 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 						return db
 					}
 					return db.Where("id IN (SELECT collection_songs.song_id FROM collection_songs WHERE collection_songs.collection_id IN ?)", ids)
+				}
+				return db
+			},
+			"like_collectionName": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
+				if ok, value := gocrud.ValuableArray(values); ok {
+					return db.Where(`
+id IN (
+	SELECT collection_songs.song_id FROM collection_songs 
+	LEFT JOIN collections ON collection_songs.collection_id = collections.id
+	WHERE collections.name LIKE ?
+)
+					`, fmt.Sprintf("%%%s%%", value))
 				}
 				return db
 			},

@@ -16,6 +16,7 @@ export default {
     created: "Created",
     createArtistsFast: "Create Artists",
     required: "{{name}} is required",
+    songSearch: "Search Song by Names",
 
     song: {
       _: "Song",

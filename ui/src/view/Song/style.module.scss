@@ -20,4 +20,19 @@
   }
 
   @include mobile.Mobile;
+
+  .extra {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    &.windowed {
+      display: flex;
+    }
+  }
+
+  .keywords {
+    flex: 1;
+    padding-right: 10px;
+  }
 }

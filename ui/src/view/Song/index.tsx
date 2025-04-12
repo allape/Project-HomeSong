@@ -11,6 +11,7 @@ import {
   useMobile,
 } from "@allape/gocrud-react";
 import NewCrudyButtonEventEmitter from "@allape/gocrud-react/src/component/CrudyButton/eventemitter.ts";
+import { useProxy } from "@allape/use-loading";
 import {
   CustomerServiceOutlined,
   DownloadOutlined,
@@ -118,11 +119,14 @@ export default function Song(): ReactElement {
     ISongWithCollections | undefined
   >();
 
+  const [keywords, keywordsRef, setKeywords] = useProxy<string>("");
+
   const columns = useMemo<TableColumnsType<IRecord>>(
     () => [
       {
         title: t("id"),
         dataIndex: "id",
+        width: 80,
       },
       {
         title: t("song.cover"),
@@ -178,7 +182,7 @@ export default function Song(): ReactElement {
       {
         title: t("collection._"),
         dataIndex: "_nonArtistNames",
-        ellipsis: { showTitle: true },
+        render: (v) => v || "------",
         filtered: !!searchParams["in_collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
           t("song.name"),
@@ -440,7 +444,7 @@ export default function Song(): ReactElement {
             .join(" & ")} - `
         : "";
 
-      const songName = form.getFieldValue("name");
+      const songName = form.getFieldValue("name") || "";
 
       LyricsCrudyEmitter.dispatchEvent("open-save-form", {
         name: `${signersNames}${songName}`,
@@ -462,6 +466,39 @@ export default function Song(): ReactElement {
     });
   }, [LyricsCrudyEmitter, form]);
 
+  const handleKeywordsBlur = useCallback(() => {
+    const kw = keywordsRef.current.trim();
+    if (!kw) {
+      setSearchParams((old) => {
+        delete old.like_name;
+        delete old.like_collectionName;
+        return {
+          ...old,
+        };
+      });
+      return;
+    }
+
+    const indexOfDash = kw.indexOf("-");
+    if (indexOfDash > -1) {
+      const singerName = kw.slice(0, indexOfDash).trim();
+      const songName = kw.slice(indexOfDash + 1).trim();
+      if (singerName) {
+        setSearchParams((old) => ({
+          ...old,
+          like_name: songName,
+          like_collectionName: singerName,
+        }));
+      }
+      return;
+    }
+
+    setSearchParams((old) => ({
+      ...old,
+      like_name: kw,
+    }));
+  }, [keywordsRef]);
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -478,9 +515,19 @@ export default function Song(): ReactElement {
         scroll={scroll}
         actions={actions}
         saveModalProps={saveModalProps}
+        titleExtra={
+          <div className={styles.keywords}>
+            <Input
+              placeholder={t("songSearch")}
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              onBlur={handleKeywordsBlur}
+            />
+          </div>
+        }
         extra={
           <>
-            <div className={styles.windowed}>
+            <div className={cls(styles.extra, styles.windowed)}>
               <LyricsCrudyButton
                 modalProps={LyricsCrudyButtonModalProps}
                 emitter={LyricsCrudyEmitter}
