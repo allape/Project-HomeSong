@@ -43,3 +43,8 @@ CMD [ "/app/app" ]
 # export docker_http_proxy=http://host.docker.internal:1080
 # docker build --platform linux/amd64 --build-arg http_proxy=$docker_http_proxy --build-arg https_proxy=$docker_http_proxy -f Dockerfile -t allape/homesong:latest .
 # sudo docker pull allape/homesong:latest && sudo docker compose -f compose.homesong.yaml up -d
+
+# docker tag allape/homesong:latest docker-registry.lan.allape.cc/allape/homesong:latest && docker push docker-registry.lan.allape.cc/allape/homesong:latest
+# sudo docker pull docker-registry.lan.allape.cc/allape/homesong:latest && sudo docker tag docker-registry.lan.allape.cc/allape/homesong:latest allape/homesong:latest
+# sudo docker compose -f compose.homesong.yaml up -d
+
