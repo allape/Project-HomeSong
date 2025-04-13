@@ -505,6 +505,7 @@ export default function Song(): ReactElement {
     setSearchParams((old) => ({
       ...old,
       like_name: kw,
+      like_collectionName: undefined,
     }));
   }, [keywordsRef]);
 
