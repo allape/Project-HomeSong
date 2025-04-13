@@ -61,6 +61,14 @@ export default function SongPlayer({
   song: songFromProps,
   onClose,
 }: ISongPlayerProps): ReactElement {
+  const renderSongsTimerRef = useRef<number>(-1);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(renderSongsTimerRef.current);
+    };
+  }, []);
+
   const { t } = useTranslation();
 
   const { loading, execute } = useLoading();
@@ -69,7 +77,7 @@ export default function SongPlayer({
     useCallback(
       () => ({
         x: window.innerWidth - 800,
-        y: 0,
+        y: 10,
         xOffset: -500,
         yOffset: -200,
       }),
@@ -94,7 +102,8 @@ export default function SongPlayer({
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
   const [renderingSongs, setRenderingSongs] = useState<IModifiedSong[]>([]);
 
-  const renderSongsTimerRef = useRef<number>(-1);
+  const history = useRef<IModifiedSong[]>([]);
+
   const renderSongs = useCallback(() => {
     clearTimeout(renderSongsTimerRef.current);
 
@@ -114,12 +123,6 @@ export default function SongPlayer({
   useEffect(() => {
     renderSongs();
   }, [songs, keyword, renderSongs]);
-
-  useEffect(() => {
-    return () => {
-      clearTimeout(renderSongsTimerRef.current);
-    };
-  }, []);
 
   const [song, songRef, setSong] = useProxy<IModifiedSong | undefined>(
     undefined,
@@ -175,18 +178,36 @@ export default function SongPlayer({
   }, [collectionRef, execute, setSongs]);
 
   useEffect(() => {
+    if (!song) {
+      return;
+    }
+
+    scrollToCurrentSong();
+
+    const index = history.current.findIndex((i) => i.id === song.id);
+    if (index > -1) {
+      history.current.splice(index, 1);
+    }
+    history.current.push(song);
+  }, [scrollToCurrentSong, song]);
+
+  useEffect(() => {
     if (!songFromProps) {
       return;
     }
+
+    const found = songsRef.current.find((s) => s.id === songFromProps.id);
+    if (found) {
+      setSong(found);
+      return;
+    }
+
     const song = modifySong(songFromProps);
     setSong(song);
     setSongs((songs) => {
-      if (songs.find((s) => s.id === song.id)) {
-        return songs;
-      }
       return [song, ...songs];
     });
-  }, [setSong, setSongs, songFromProps]);
+  }, [setSong, setSongs, songFromProps, songsRef]);
 
   const handleCollectionChange = useCallback(
     async (id?: ICollection["id"]) => {
@@ -200,6 +221,13 @@ export default function SongPlayer({
     (delta: number) => {
       switch (loopRef.current) {
         case "shuffle":
+          if (delta < 0 && history.current.length > 1) {
+            history.current.splice(history.current.length - 1, 1);
+            const next = history.current[history.current.length - 1];
+            setSong(songsRef.current.find((s) => s.id === next.id));
+            return;
+          }
+
           setSong((old) => {
             const index = (songsRef.current.length * Math.random()) >> 0;
             let next = songsRef.current[index];
