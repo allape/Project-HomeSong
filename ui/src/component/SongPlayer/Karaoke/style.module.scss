@@ -45,11 +45,7 @@
     color: white;
 
     .line {
-      padding: 0 15%;
-
-      @media screen and (max-width: mobile.$max-width) {
-        padding: 0 18%;
-      }
+      padding: 0 18%;
 
       .mask {
         text-shadow: none;
