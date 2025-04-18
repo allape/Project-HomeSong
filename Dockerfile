@@ -21,8 +21,6 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 
-COPY --from=ui_builder /build/dist ui/dist
-
 COPY . .
 RUN go build -o app .
 
