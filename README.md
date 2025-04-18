@@ -27,9 +27,17 @@ docker run -d --name homesong \
 
 ### Dev
 
+#### Required External Programs
+
+- [FFmpeg](http://ffmpeg.org/)
+
+#### Backend
+
 ```shell
 go run .
 ```
+
+#### Frontend
 
 ```shell
 cd ui
