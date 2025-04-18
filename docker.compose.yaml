@@ -1,15 +1,16 @@
 name: homesong
 services:
   app:
-    image: allape/homesong:latest
+    image: ghcr.io/allape/homesong:main
     container_name: homesong
     restart: unless-stopped
+    ports:
+      - "8080:8080"
     environment:
       HOME_SONG_DATABASE_DSN: "root:GBlOn0VAmKmMtVGeMBzC@tcp(database:3306)/homesong?charset=utf8mb4&parseTime=True&loc=Local"
     volumes:
       - ./static:/app/static
     networks:
-      - homesong
       - internal
     depends_on:
       database:
@@ -27,6 +28,5 @@ services:
     volumes:
       - ./database:/var/lib/mysql
 networks:
-  homesong:
   internal:
     internal: true

@@ -33,3 +33,6 @@ jobs:
 
       - name: Push the Docker image
         run: "docker push ghcr.io/${{ github.repository }}:main-${{ github.sha }}"
+
+      - name: Tag the Docker image as main
+        run: "docker tag ghcr.io/${{ github.repository }}:main-${{ github.sha }} ghcr.io/${{ github.repository }}:main && docker push ghcr.io/${{ github.repository }}:main"
