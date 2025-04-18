@@ -4,6 +4,14 @@ Song Management for Home NAS.
 And the default UI is not designed for "to client" usage, more ERP style.
 Client usages should be integrated with some authentication system.
 
+## Screenshots
+
+![img.png](examples/pc-dark-en.png)
+
+![zh.png](examples/pc-dark-zh.png)
+
+![iPhone-zh.jpeg](examples/mobile-light-zh.jpeg)
+
 ### Start
 
 All available images are
