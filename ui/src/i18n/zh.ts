@@ -56,6 +56,7 @@ export default {
       index: "序号",
       description: "描述",
       fromStandardLRC: "从标准 LRC 解析",
+      howToMakeLRCPLyrics: "如何制作 .lrcp 歌词？",
     },
     player: {
       name: "播放器",

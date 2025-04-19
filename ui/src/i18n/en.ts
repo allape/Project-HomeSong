@@ -56,6 +56,7 @@ export default {
       index: "Index",
       description: "Description",
       fromStandardLRC: "Parse from Standard LRC",
+      howToMakeLRCPLyrics: "How to make .lrcp lyrics?",
     },
     player: {
       name: "Music Player",
