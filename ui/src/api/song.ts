@@ -37,6 +37,7 @@ export interface ISongWithCollections extends ISong {
   _nonSingerNames?: string;
   _nonSingerIds?: ICollection["id"][];
   _nonArtistNames?: string;
+  _nonArtistNameArr?: string[];
   _nonArtistIds?: ICollection["id"][];
 }
 
@@ -107,6 +108,10 @@ export async function fillSongsWithCollections(
 
     const cs = collections.filter((c) => currentCsIds.includes(c.id));
 
+    const nonArtistNames = collections
+      .filter((c) => nonArtistIds.includes(c.id))
+      .map((c) => c.name);
+
     return {
       ...s,
       _collections: cs,
@@ -147,10 +152,8 @@ export async function fillSongsWithCollections(
         .join(" & "),
       _nonSingerIds: nonSingerIds,
 
-      _nonArtistNames: collections
-        .filter((c) => nonArtistIds.includes(c.id))
-        .map((c) => c.name)
-        .join(", "),
+      _nonArtistNames: nonArtistNames.join(", "),
+      _nonArtistNameArr: nonArtistNames,
       _nonArtistIds: nonArtistIds,
     };
   });

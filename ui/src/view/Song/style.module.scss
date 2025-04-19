@@ -19,6 +19,18 @@
     cursor: pointer;
   }
 
+  .nonArtistName {
+    &:not(:last-child) {
+      padding-bottom: 5px;
+    }
+  }
+
+  .noWrap {
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
   @include mobile.Mobile;
 
   .extra {
