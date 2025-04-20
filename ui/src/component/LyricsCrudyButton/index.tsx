@@ -99,10 +99,7 @@ export default function LyricsCrudyButton(
       return;
     }
 
-    form?.setFieldValue(
-      "content",
-      LyricsDriver.parseStandardLRC(lrc).toString(),
-    );
+    form?.setFieldValue("content", LyricsDriver.parseStandardLRC(lrc).save());
   }, [form, t]);
 
   const handleLRCPDrop = useCallback(
@@ -120,6 +117,12 @@ export default function LyricsCrudyButton(
     },
     [form],
   );
+
+  const handleOpenLRCPReadme = useCallback(() => {
+    window.open(
+      "https://github.com/allape/React-Lyrics?tab=readme-ov-file#playground-httpsallapegithubioreact-lyrics",
+    );
+  }, []);
 
   return (
     <CrudyButton
@@ -156,6 +159,10 @@ export default function LyricsCrudyButton(
         label={
           <>
             {t("lyrics.content")}
+            <Divider type="vertical" />
+            <Button type="link" onClick={handleOpenLRCPReadme}>
+              {t("lyrics.howToMakeLRCPLyrics")}
+            </Button>
             <Divider type="vertical" />
             <Button type="primary" onClick={handleParseStandardLRC}>
               {t("lyrics.fromStandardLRC")}

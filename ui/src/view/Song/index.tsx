@@ -37,6 +37,7 @@ import {
 import cls from "classnames";
 import {
   ChangeEvent,
+  CSSProperties,
   ReactElement,
   ReactNode,
   useCallback,
@@ -90,6 +91,11 @@ interface IRecord extends ISongWithCollections {
   _name?: string;
 }
 
+// For demo screenshots
+const CensoredStyle: CSSProperties = {
+  // filter: "blur(10px)",
+};
+
 export default function Song(): ReactElement {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -139,6 +145,7 @@ export default function Song(): ReactElement {
               src={v}
               shape="square"
               onClick={() => window.open(v)}
+              style={CensoredStyle}
             />
           ) : (
             <Avatar shape="square" size={64} icon={<PictureOutlined />} />
@@ -150,12 +157,13 @@ export default function Song(): ReactElement {
         dataIndex: "name",
         ellipsis: { showTitle: true },
         render: (_, record) => (
-          <Flex justifyContent="flex-start" className={styles.name}>
+          <Flex justifyContent="flex-start">
             <CopyButton value={record._name} />
             <Tooltip title={record._name}>
               <Button
                 type="link"
                 size="small"
+                style={CensoredStyle}
                 onClick={() => {
                   setPlayerVisible(true);
                   setSongForPlay(record as ISongWithCollections);
@@ -182,7 +190,17 @@ export default function Song(): ReactElement {
       {
         title: t("collection._"),
         dataIndex: "_nonArtistNames",
-        render: (v) => v || "------",
+        render: (_, record) => (
+          <div style={CensoredStyle}>
+            {record._nonArtistNameArr?.length
+              ? record._nonArtistNameArr.map((name) => (
+                  <div key={name} className={cls(styles.nonArtistName, styles.noWrap)}>
+                    {name}
+                  </div>
+                ))
+              : "---"}
+          </div>
+        ),
         filtered: !!searchParams["in_collectionId"],
         ...searchable<IRecord, ICollection["id"]>(
           t("song.name"),
@@ -200,7 +218,7 @@ export default function Song(): ReactElement {
         title: t("song.mime"),
         dataIndex: "mime",
         align: "center",
-        render: (v) => v || "-",
+        render: (v) => <div className={styles.noWrap}>{v || "-"}</div>,
       },
       {
         title: t("song.ffprobeInfo"),
@@ -530,6 +548,7 @@ export default function Song(): ReactElement {
             <Input
               placeholder={t("songSearch")}
               value={keywords}
+              allowClear
               onChange={(e) => setKeywords(e.target.value)}
               onBlur={handleKeywordsSearch}
               onPressEnter={handleKeywordsSearch}

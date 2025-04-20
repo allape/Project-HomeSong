@@ -16,7 +16,7 @@ export default {
     created: "已创建",
     createArtistsFast: "快速创建艺术家",
     required: "{{name}} 是必填项",
-    songSearch: "搜索歌曲",
+    songSearch: "搜索歌曲, 如：歌手 - 歌名",
 
     song: {
       _: "歌曲",
@@ -56,6 +56,7 @@ export default {
       index: "序号",
       description: "描述",
       fromStandardLRC: "从标准 LRC 解析",
+      howToMakeLRCPLyrics: "如何制作 .lrcp 歌词？",
     },
     player: {
       name: "播放器",
