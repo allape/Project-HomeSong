@@ -47,6 +47,8 @@ func Compress(filename string, bitrate uint64, writer io.Writer) error {
 		"-y",
 		"-v", "error",
 		"-i", filename,
+		"-map", "a",
+		"-map_metadata", "-1",
 		"-b:a", fmt.Sprintf("%d", bitrate),
 		tmp.Name(),
 	)
