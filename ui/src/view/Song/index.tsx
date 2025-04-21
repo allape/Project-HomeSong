@@ -194,7 +194,10 @@ export default function Song(): ReactElement {
           <div style={CensoredStyle}>
             {record._nonArtistNameArr?.length
               ? record._nonArtistNameArr.map((name) => (
-                  <div key={name} className={cls(styles.nonArtistName, styles.noWrap)}>
+                  <div
+                    key={name}
+                    className={cls(styles.nonArtistName, styles.noWrap)}
+                  >
                     {name}
                   </div>
                 ))
@@ -432,6 +435,9 @@ export default function Song(): ReactElement {
           maxHeight: isMobile ? "calc(100dvh - 120px)" : "calc(100dvh - 150px)",
           overflowY: "auto",
         },
+      },
+      onCancel: () => {
+        fileRef.current = undefined;
       },
     }),
     [isMobile],
