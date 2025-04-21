@@ -12,7 +12,7 @@ import {
   ShrinkOutlined,
   StepForwardOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Card, Input, List } from "antd";
+import { Avatar, Button, Card, Input, List, Select } from "antd";
 import cls from "classnames";
 import {
   ReactElement,
@@ -34,6 +34,7 @@ import { ISongSearchParams } from "../../model/song.ts";
 import CollectionSelector, {
   ICollectionSelectorProps,
 } from "../CollectionSelector";
+import useBitRates, { BitRate } from "./BitRate/useBitRates.tsx";
 import Controller, { LoopType } from "./Controller";
 import Karaoke from "./Karaoke";
 import { IModifiedSong } from "./model.ts";
@@ -134,6 +135,9 @@ export default function SongPlayer({
   const [duration, setDuration] = useState<number>(0);
   const [playing, playingRef, setPlaying] = useProxy<boolean>(false);
   const [loop, loopRef, setLoop] = useProxy<LoopType>("shuffle");
+
+  const bitRates = useBitRates();
+  const [bitRate, , setBitRate] = useProxy<BitRate>(bitRates[0].value);
 
   const handleAudioOk = useCallback(
     (audio: HTMLAudioElement | null) => {
@@ -451,13 +455,24 @@ export default function SongPlayer({
         <div className={styles.player}>
           <div className={cls(styles.header, isKaraokeMode && styles.karaoke)}>
             <div className={styles.form}>
-              <CollectionSelector
-                loading={loading}
-                value={collection}
-                onChange={handleCollectionChange}
-                allowClear
-                onLoaded={handleCollectionsLoaded}
-              ></CollectionSelector>
+              <div className={styles.row}>
+                <div className={styles.collectionSelector}>
+                  <CollectionSelector
+                    loading={loading}
+                    value={collection}
+                    onChange={handleCollectionChange}
+                    allowClear
+                    onLoaded={handleCollectionsLoaded}
+                  ></CollectionSelector>
+                </div>
+                <Select
+                  className={styles.bitRateSelector}
+                  placeholder={t("player.bitRate._")}
+                  options={bitRates}
+                  value={bitRate}
+                  onChange={setBitRate}
+                />
+              </div>
               <Input
                 placeholder={t("player.search")}
                 value={keyword}
@@ -467,6 +482,7 @@ export default function SongPlayer({
             </div>
             <Player
               song={song}
+              bitRate={bitRate}
               emitter={PEE}
               onChange={setPlaying}
               onNext={handleNext}
@@ -522,7 +538,12 @@ function SongList({ song, songs, onChange }: ISongListProps): ReactElement {
                 <Avatar
                   className={styles.avatar}
                   size={64}
-                  src={item._cover}
+                  shape="square"
+                  src={
+                    item._cover ? (
+                      <img src={item._cover} alt={item._name} loading="lazy" />
+                    ) : undefined
+                  }
                   icon={item._cover ? undefined : <PictureOutlined />}
                 />
               }

@@ -379,7 +379,11 @@ export default function Song(): ReactElement {
             type="link"
             onClick={() => window.open(record._url)}
           >
-            <a href={record._url} onClick={(e) => e.preventDefault()}>
+            <a
+              href={record._url}
+              download={record._name}
+              onClick={(e) => e.preventDefault()}
+            >
               <DownloadOutlined />
             </a>
           </Button>

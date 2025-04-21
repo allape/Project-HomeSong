@@ -138,6 +138,23 @@
           gap: 4px;
           height: auto;
           transition: 0.2s;
+
+          .row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+
+            .collectionSelector {
+              flex: 1;
+              width: 100%;
+            }
+
+            .bitRateSelector {
+              width: unset;
+              min-width: 100px;
+            }
+          }
         }
 
         &.karaoke {

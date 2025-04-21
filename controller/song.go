@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -204,11 +205,24 @@ id IN (
 		context.Data(http.StatusOK, "image/"+ext, cover)
 	})
 
-	group.GET("/hotwire/:id", func(context *gin.Context) {
+	// bitrate=0 return original file
+	group.GET("/file/:id", func(context *gin.Context) {
 		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
 		if id == 0 {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
 			return
+		}
+
+		var err error
+
+		bitrate := uint64(0)
+		bitrateStr := context.Query("bitrate")
+		if bitrateStr != "" {
+			bitrate, err = strconv.ParseUint(bitrateStr, 10, 64)
+			if err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), err)
+				return
+			}
 		}
 
 		var song model.Song
@@ -222,14 +236,20 @@ id IN (
 
 		filename := path.Join(env.StaticFolder, song.Filename)
 
+		if bitrate == 0 {
+			context.File(filename)
+			return
+		}
+
 		context.Header("Content-Type", "audio/mpeg")
 		context.Writer.WriteHeaderNow()
 		context.Writer.Flush()
 
-		err := ffmpeg.ConvertToMp3(filename, context.Writer)
+		err = ffmpeg.Compress(filename, bitrate, context.Writer)
 		if err != nil {
 			l.Error().Println(err)
 		}
+		context.Writer.Flush()
 	})
 
 	// ?lyricsIds=1,2,3

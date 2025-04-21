@@ -1,12 +1,15 @@
+import { config } from "@allape/gocrud-react";
 import { EEEventListener } from "@allape/gocrud-react/src/helper/eventemitter.ts";
 import { useProxy } from "@allape/use-loading";
 import { ReactElement, SyntheticEvent, useCallback, useEffect } from "react";
+import { BitRate } from "../BitRate/useBitRates.tsx";
 import { IModifiedSong } from "../model.ts";
 import PlayerEventEmitter from "./eventemitter.ts";
 import styles from "./style.module.scss";
 
 export interface IPlayerProps {
   song?: IModifiedSong;
+  bitRate?: BitRate;
   emitter?: PlayerEventEmitter;
   onNext?: () => void;
   onPrev?: () => void;
@@ -18,6 +21,7 @@ export interface IPlayerProps {
 
 export default function Player({
   song,
+  bitRate = 0,
   emitter,
   onPrev,
   onNext,
@@ -184,7 +188,11 @@ export default function Player({
           controls
           ref={setAudio}
           // key={song?.id}
-          src={song?._url}
+          src={
+            song
+              ? `${config.SERVER_URL}/song/file/${song.id}?bitrate=${bitRate}`
+              : ""
+          }
           className={styles.audio}
           onPlay={handlePlay}
           onPause={handlePause}

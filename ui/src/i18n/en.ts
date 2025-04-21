@@ -16,7 +16,7 @@ export default {
     created: "Created",
     createArtistsFast: "Create Artists",
     required: "{{name}} is required",
-    songSearch: "Search in \"Collection Name - Song Name\"",
+    songSearch: 'Search in "Collection Name - Song Name"',
 
     song: {
       _: "Song",
@@ -77,6 +77,14 @@ export default {
         shuffle: "Shuffle",
         list: "List Loop",
         no: "No Loop",
+      },
+      bitRate: {
+        _: "Bit Rate",
+        original: "Original File",
+        "128k": "128k",
+        "96k": "96k",
+        "48k": "48k",
+        "32k": "32k",
       },
     },
   },

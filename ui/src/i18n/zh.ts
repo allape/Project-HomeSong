@@ -1,4 +1,4 @@
-import { i18n } from '@allape/gocrud-react';
+import { i18n } from "@allape/gocrud-react";
 
 export default {
   translation: {
@@ -77,6 +77,14 @@ export default {
         shuffle: "随机播放",
         list: "列表循环",
         no: "单曲播放",
+      },
+      bitRate: {
+        _: "比特率",
+        original: "源文件",
+        "128k": "128K",
+        "96k": "96K",
+        "48k": "48K",
+        "32k": "32K",
       },
     },
   },
