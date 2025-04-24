@@ -166,7 +166,7 @@ export default function Song(): ReactElement {
                 style={CensoredStyle}
                 onClick={() => {
                   setPlayerVisible(true);
-                  setSongForPlay(record as ISongWithCollections);
+                  setSongForPlay({ ...record } as ISongWithCollections);
                 }}
               >
                 {record._name}
