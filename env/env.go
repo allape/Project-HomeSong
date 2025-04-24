@@ -13,6 +13,8 @@ const (
 
 	uiFolder     = "HOME_SONG_UI_FOLDER"
 	staticFolder = "HOME_SONG_STATIC_FOLDER"
+
+	debugMode = "HOME_SONG_DEBUG_MODE"
 )
 
 var (
@@ -24,6 +26,8 @@ var (
 
 	UIFolder     = goenv.Getenv(uiFolder, "./ui/dist/index.html")
 	StaticFolder = goenv.Getenv(staticFolder, "./static")
+
+	DebugMode = goenv.Getenv(debugMode, false)
 
 	Standalone = DatabaseDSN == ""
 )
