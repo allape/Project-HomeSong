@@ -241,15 +241,25 @@ id IN (
 			return
 		}
 
-		context.Header("Content-Type", "audio/mpeg")
-		context.Writer.WriteHeaderNow()
-		context.Writer.Flush()
+		// iOS will treat this as streaming when converting to mp3 on the fly
+		//context.Header("Content-Type", "audio/mpeg")
+		//context.Writer.WriteHeaderNow()
+		//context.Writer.Flush()
+		//
+		//err = ffmpeg.Compress(filename, bitrate, context.Writer)
+		//if err != nil {
+		//	l.Error().Println(err)
+		//}
+		//context.Writer.Flush()
 
-		err = ffmpeg.Compress(filename, bitrate, context.Writer)
+		// FIXME should save this to a file for long-term use?
+		cache := bytes.NewBuffer(nil)
+		err = ffmpeg.Compress(filename, bitrate, cache)
 		if err != nil {
 			l.Error().Println(err)
 		}
-		context.Writer.Flush()
+
+		context.DataFromReader(http.StatusOK, int64(cache.Len()), "audio/mpeg", cache, nil)
 	})
 
 	// ?lyricsIds=1,2,3
