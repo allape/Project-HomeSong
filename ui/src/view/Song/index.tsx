@@ -545,10 +545,19 @@ export default function Song(): ReactElement {
     }
 
     const u = new URL(LyricsCreatorURL);
-    u.searchParams.set("src", `${config.SERVER_STATIC_URL}${data.filename}`);
+    u.searchParams.set(
+      "src",
+      URL.parse(
+        `${config.SERVER_STATIC_URL}${data.filename}`,
+        window.location.origin,
+      )?.toString() || "",
+    );
     u.searchParams.set(
       "text",
-      `${config.SERVER_URL}/lyrics/text/${data._lyricsIds?.[0]}`,
+      URL.parse(
+        `${config.SERVER_URL}/lyrics/text/${data._lyricsIds?.[0]}`,
+        window.location.origin,
+      )?.toString() || "",
     );
     u.hash = "#lyrics-timeline";
     window.open(u.toString());
