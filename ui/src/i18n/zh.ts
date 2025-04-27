@@ -17,6 +17,8 @@ export default {
     createArtistsFast: "快速创建艺术家",
     required: "{{name}} 是必填项",
     songSearch: "搜索歌曲, 如：歌手 - 歌名",
+    refineLyrics: "优化歌词",
+    createSongFirst: "请先创建歌曲",
 
     song: {
       _: "歌曲",

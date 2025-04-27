@@ -68,6 +68,7 @@ import LyricsCrudyButton from "../../component/LyricsCrudyButton";
 import LyricsSelector from "../../component/LyricsSelector";
 import SongPlayer from "../../component/SongPlayer";
 import WordInput from "../../component/WordInput";
+import { LyricsCreatorURL } from "../../config/lyrics.ts";
 import { ICollection } from "../../model/collection.ts";
 import { ILyrics } from "../../model/lyrics.ts";
 import { ISongSearchParams } from "../../model/song.ts";
@@ -537,6 +538,22 @@ export default function Song(): ReactElement {
     }));
   }, [keywordsRef]);
 
+  const handleRefineLyrics = useCallback(async () => {
+    const data = await form?.validateFields();
+    if (!data || !data._lyricsIds?.length) {
+      return;
+    }
+
+    const u = new URL(LyricsCreatorURL);
+    u.searchParams.set("src", `${config.SERVER_STATIC_URL}${data.filename}`);
+    u.searchParams.set(
+      "text",
+      `${config.SERVER_URL}/lyrics/text/${data._lyricsIds?.[0]}`,
+    );
+    u.hash = "#lyrics-timeline";
+    window.open(u.toString());
+  }, [form]);
+
   return (
     <>
       <CrudyTable<IRecord>
@@ -736,6 +753,19 @@ export default function Song(): ReactElement {
               label={
                 <Flex>
                   {t("lyrics._")}
+                  <Divider type="vertical" />
+
+                  <Tooltip
+                    title={!record?.id ? t("createSongFirst") : undefined}
+                  >
+                    <Button
+                      type="link"
+                      disabled={!record?.id}
+                      onClick={handleRefineLyrics}
+                    >
+                      {t("refineLyrics")}
+                    </Button>
+                  </Tooltip>
                   <Divider type="vertical" />
 
                   <Button

@@ -17,6 +17,8 @@ export default {
     createArtistsFast: "Create Artists",
     required: "{{name}} is required",
     songSearch: 'Search in "Collection Name - Song Name"',
+    refineLyrics: "Refine Lyrics",
+    createSongFirst: "Please create a song first before this action",
 
     song: {
       _: "Song",

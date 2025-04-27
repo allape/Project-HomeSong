@@ -5,6 +5,7 @@ import (
 	"github.com/allape/homesong/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 	"strings"
 )
 
@@ -27,6 +28,22 @@ func SetupLyricsController(group *gin.RouterGroup, db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+
+	group.GET("/text/:id", func(context *gin.Context) {
+		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
+		if id == 0 {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
+			return
+		}
+
+		var lyrics model.Lyrics
+		if err := db.Model(lyrics).Where("id = ?", id).Find(&lyrics).Error; err != nil {
+			gocrud.MakeErrorResponse(context, gocrud.RestCoder.NotFound(), "lyrics not found")
+			return
+		}
+
+		context.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(lyrics.Content))
+	})
 
 	return nil
 }

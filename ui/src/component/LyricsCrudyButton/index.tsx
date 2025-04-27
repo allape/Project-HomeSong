@@ -21,6 +21,7 @@ import {
 import { DragEvent, ReactElement, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LyricsCrudy } from "../../api/lyrics.ts";
+import { LyricsCreatorDocURL } from "../../config/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
 import CopyButton from "../CopyButton";
 import SongNameInput from "../SongNameInput";
@@ -119,9 +120,7 @@ export default function LyricsCrudyButton(
   );
 
   const handleOpenLRCPReadme = useCallback(() => {
-    window.open(
-      "https://github.com/allape/React-Lyrics?tab=readme-ov-file#playground-httpsallapegithubioreact-lyrics",
-    );
+    window.open(LyricsCreatorDocURL);
   }, []);
 
   return (
