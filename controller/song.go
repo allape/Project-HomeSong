@@ -44,13 +44,17 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 			},
 			"like_collectionName": func(db *gorm.DB, values []string, with url.Values) *gorm.DB {
 				if ok, value := gocrud.ValuableArray(values); ok {
-					return db.Where(`
-id IN (
-	SELECT collection_songs.song_id FROM collection_songs 
-	LEFT JOIN collections ON collection_songs.collection_id = collections.id
-	WHERE collections.name LIKE ?
-)
-					`, fmt.Sprintf("%%%s%%", value))
+					value = fmt.Sprintf("%%%s%%", value)
+					return db.Where(
+						`
+						id IN (
+							SELECT collection_songs.song_id FROM collection_songs 
+							LEFT JOIN collections ON collection_songs.collection_id = collections.id
+							WHERE (collections.name LIKE ? OR collection.keywords LIKE ?)
+						)`,
+						value,
+						value,
+					)
 				}
 				return db
 			},
