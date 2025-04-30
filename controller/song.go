@@ -50,7 +50,7 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 						id IN (
 							SELECT collection_songs.song_id FROM collection_songs 
 							LEFT JOIN collections ON collection_songs.collection_id = collections.id
-							WHERE (collections.name LIKE ? OR collection.keywords LIKE ?)
+							WHERE (collections.name LIKE ? OR collections.keywords LIKE ?)
 						)`,
 						value,
 						value,
