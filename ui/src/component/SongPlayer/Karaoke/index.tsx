@@ -70,12 +70,10 @@ export default function Karaoke({
 
       allLyrics.current = ls;
 
-      setOptions(
-        ls.map((i) => ({ value: i.id, label: `${t("lyrics._")} - ${i.name}` })),
-      );
+      setOptions(ls.map((i) => ({ value: i.id, label: i.name })));
       handleChange(ls[0]?.id);
     }).then();
-  }, [execute, song, t, handleChange]);
+  }, [execute, song, handleChange]);
 
   useEffect(() => {
     if (!anchor) {
