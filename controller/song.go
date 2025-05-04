@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/allape/gocrud"
 	"github.com/allape/homesong/env"
@@ -274,10 +275,6 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		//}
 		//context.Writer.Flush()
 
-		var reader io.Reader
-		contentLength := int64(0)
-		contentType := ""
-
 		if bitrate <= 0 {
 			file, err := os.Open(filename)
 			if err != nil {
@@ -296,34 +293,58 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), "file is a directory")
 				return
 			}
-
-			reader = file
-			contentLength = stat.Size()
-			contentType = song.MIME
 		} else {
-			// FIXME should save this to a file for long-term use?
-			reader := bytes.NewBuffer(nil)
-			err = ffmpeg.Compress(filename, bitrate, reader)
+			compressedFolder := path.Join(env.StaticFolder, "compressed")
+
+			stat, err := os.Stat(compressedFolder)
 			if err != nil {
-				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				if errors.Is(err, os.ErrNotExist) {
+					err = os.MkdirAll(compressedFolder, 0755)
+					if err != nil {
+						gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+						return
+					}
+				} else {
+					gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+					return
+				}
+			} else if !stat.IsDir() {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), "compressed folder is not a directory")
 				return
 			}
-			contentLength = int64(reader.Len())
-			contentType = "audio/mpeg"
-		}
 
-		extraHeaders := map[string]string{}
+			compressedFilename := path.Join(compressedFolder, fmt.Sprintf("%s.%d.mp3", path.Base(song.Filename), bitrate))
+
+			stat, err = os.Stat(compressedFilename)
+			if err != nil {
+				if errors.Is(err, os.ErrNotExist) {
+					err = ffmpeg.Compress(compressedFilename, filename, bitrate)
+					if err != nil {
+						gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+						return
+					}
+				} else {
+					gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+					return
+				}
+			} else if stat.IsDir() {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), "compressed file is a directory")
+				return
+			}
+
+			filename = compressedFilename
+		}
 
 		if download != "" {
-			contentType = "application/octet-stream"
 			if isASCII(download) {
-				extraHeaders["Content-Disposition"] = `attachment; filename="` + escapeQuotes(download) + `"`
+				context.Writer.Header().Set("Content-Disposition", `attachment; filename="`+escapeQuotes(download)+`"`)
 			} else {
-				extraHeaders["Content-Disposition"] = `attachment; filename*=UTF-8''` + strings.ReplaceAll(url.QueryEscape(download), "+", "%20")
+				context.Writer.Header().Set("Content-Disposition", `attachment; filename*=UTF-8''`+strings.ReplaceAll(url.QueryEscape(download), "+", "%20"))
 			}
+			context.Writer.Header().Set("Content-Type", "application/octet-stream")
 		}
 
-		context.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
+		context.File(filename)
 	})
 
 	// ?lyricsIds=1,2,3
