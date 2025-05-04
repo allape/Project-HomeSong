@@ -93,7 +93,9 @@ export default function SongPlayer({
   const [wrapper, setWrapper] = useState<HTMLDivElement | null>(null);
 
   const [view, setView] = useState<"lyrics" | "list">("list");
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [layout, setLayout] = useState<"collapsed" | "normal" | "fullscreen">(
+    "normal",
+  );
 
   const [collection, collectionRef, setCollection] = useProxy<
     ICollection["id"] | undefined
@@ -148,7 +150,7 @@ export default function SongPlayer({
 
   useEffect(() => {
     if (isMobile) {
-      setCollapsed(false);
+      setLayout("fullscreen");
     }
   }, [isMobile]);
 
@@ -320,7 +322,7 @@ export default function SongPlayer({
   }, [scrollToCurrentSong, songRef, view]);
 
   useEffect(() => {
-    if (collapsed || !wrapper) {
+    if (layout === "collapsed" || !wrapper) {
       return;
     }
 
@@ -367,7 +369,7 @@ export default function SongPlayer({
     return () => {
       wrapper.removeEventListener("keydown", handleKeyDown);
     };
-  }, [PEE, collapsed, handleNext, handlePrev, playingRef, wrapper]);
+  }, [PEE, handleNext, handlePrev, layout, playingRef, wrapper]);
 
   const isKaraokeMode = view === "lyrics";
 
@@ -376,7 +378,11 @@ export default function SongPlayer({
       tabIndex={0}
       autoFocus
       ref={setWrapper}
-      className={cls(styles.wrapper, collapsed && styles.collapsed)}
+      className={cls(
+        styles.wrapper,
+        styles[layout],
+        isMobile && styles.isMobile,
+      )}
       style={{ left: `${x}px`, top: `${y}px` }}
       title={
         <Flex
@@ -390,14 +396,14 @@ export default function SongPlayer({
             onClick={scrollToCurrentSong}
           >
             {song ? song._name : t("player.name")}
-            {collapsed && playing && !isMobile && (
+            {layout === "collapsed" && playing && !isMobile && (
               <MiniProgressBar current={current / 1000} duration={duration} />
             )}
           </span>
           {song && (
             <MiniControls
               playing={playing}
-              collapsed={collapsed}
+              collapsed={layout === "collapsed"}
               onToggle={() => PEE.dispatchEvent(playing ? "pause" : "play")}
               onNext={handleNext}
             />
@@ -406,31 +412,28 @@ export default function SongPlayer({
       }
       extra={
         <>
-          <Button
-            title={t("player.close")}
-            type="link"
-            danger
-            onClick={onClose}
-          >
-            <CloseOutlined />
-          </Button>
-          {collapsed ? (
-            <Button
-              title={t("player.expand")}
-              className={styles.windowed}
-              type="link"
-              onClick={() => setCollapsed(false)}
-            >
-              <ExpandAltOutlined />
-            </Button>
-          ) : (
+          {layout !== "collapsed" && (
             <Button
               title={t("player.collapse")}
-              className={styles.windowed}
+              className={isMobile ? styles.windowed : undefined}
               type="link"
-              onClick={() => setCollapsed(true)}
+              onClick={() =>
+                setLayout((l) => (l === "fullscreen" ? "normal" : "collapsed"))
+              }
             >
               <ShrinkOutlined />
+            </Button>
+          )}
+          {layout !== "fullscreen" && (
+            <Button
+              title={t("player.expand")}
+              className={isMobile ? styles.windowed : undefined}
+              type="link"
+              onClick={() =>
+                setLayout((l) => (l === "collapsed" ? "normal" : "fullscreen"))
+              }
+            >
+              <ExpandAltOutlined />
             </Button>
           )}
           <Button
@@ -442,6 +445,16 @@ export default function SongPlayer({
           >
             <DragOutlined />
           </Button>
+          {(isMobile || layout !== "fullscreen") && (
+            <Button
+              title={t("player.close")}
+              type="link"
+              danger
+              onClick={onClose}
+            >
+              <CloseOutlined />
+            </Button>
+          )}
         </>
       }
     >
@@ -504,7 +517,12 @@ export default function SongPlayer({
               <SongList song={song} songs={renderingSongs} onChange={setSong} />
             )}
             {isKaraokeMode && (
-              <Karaoke current={current} song={song} onChange={seekTo} />
+              <Karaoke
+                current={current}
+                fullscreen={layout === "fullscreen"}
+                song={song}
+                onChange={seekTo}
+              />
             )}
           </div>
         </div>

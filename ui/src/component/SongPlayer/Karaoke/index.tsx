@@ -3,20 +3,23 @@ import { ILyricsProps, Lyrics, TimePoint } from "@allape/lyrics";
 import { useLoading } from "@allape/use-loading";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Empty, Select } from "antd";
-import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import cls from "classnames";
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { getLyrics } from "../../../api/song.ts";
 import { ILyrics } from "../../../model/lyrics.ts";
 import { ISong } from "../../../model/song.ts";
 import styles from "./style.module.scss";
 
-const LyricsStyles: ILyricsProps["classNames"] = {
-  wrapper: styles.karaoke,
-  line: styles.line,
-  mask: styles.mask,
-};
-
 export interface IKaraokeProps {
+  fullscreen?: boolean;
   current: TimePoint;
   song?: ISong;
   onChange?: (tp: TimePoint) => void;
@@ -27,6 +30,7 @@ export interface IModifiedLyrics extends ILyrics {
 }
 
 export default function Karaoke({
+  fullscreen,
   current,
   song,
   onChange,
@@ -106,6 +110,15 @@ export default function Karaoke({
     };
   }, []);
 
+  const lyricsStyles = useMemo<ILyricsProps["classNames"]>(
+    () => ({
+      wrapper: styles.karaoke,
+      line: cls(styles.line, fullscreen && styles.fullscreen),
+      mask: styles.mask,
+    }),
+    [fullscreen],
+  );
+
   return (
     <div className={styles.wrapper}>
       <div ref={setAnchor}></div>
@@ -129,7 +142,7 @@ export default function Karaoke({
           current={current}
           content={currentLyrics.content}
           onChange={onChange}
-          classNames={LyricsStyles}
+          classNames={lyricsStyles}
         />
       )}
       <Select<ILyrics["id"]>

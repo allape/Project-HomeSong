@@ -48,6 +48,11 @@
       padding: 0 18%;
       line-height: normal !important;
 
+      &.fullscreen {
+        font-size: 4vw;
+        padding: 8vh 18vw;
+      }
+
       .mask {
         text-shadow: none;
       }
