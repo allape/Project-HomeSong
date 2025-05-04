@@ -88,6 +88,7 @@ interface IRecord extends ISongWithCollections {
   _lyricsIds?: ILyrics["id"][];
 
   _url?: string;
+  _download?: string;
   _cover?: string;
   _name?: string;
 }
@@ -247,15 +248,20 @@ export default function Song(): ReactElement {
     async (records: IRecord[]): Promise<IRecord[]> => {
       const swcs = await fillSongsWithCollections(records);
       return swcs.map<IRecord>((s) => {
+        const name = `${s._singerNames ? `${s._singerNames} - ` : ""}${s.name}`;
+        const ext = s.filename.split(".").pop();
+
         return {
           ...s,
 
           _url: s.filename
             ? `${config.SERVER_STATIC_URL}${s.filename}`
             : undefined,
+          _download: `${config.SERVER_URL}/song/file/${s.id}?download=${encodeURIComponent(name || s.name)}${ext ? `.${ext}` : ""}`,
+
           _cover: s.cover ? `${config.SERVER_STATIC_URL}${s.cover}` : undefined,
 
-          _name: `${s._singerNames ? `${s._singerNames} - ` : ""}${s.name}`,
+          _name: name,
         };
       });
     },
@@ -374,19 +380,13 @@ export default function Song(): ReactElement {
       return (
         <>
           <Button
-            data-url={record._url}
             size={size}
             title={t("download")}
             type="link"
-            onClick={() => window.open(record._url)}
+            href={record._download}
+            download={record._name}
           >
-            <a
-              href={record._url}
-              download={record._name}
-              onClick={(e) => e.preventDefault()}
-            >
-              <DownloadOutlined />
-            </a>
+            <DownloadOutlined />
           </Button>
         </>
       );

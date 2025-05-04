@@ -18,7 +18,27 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"unicode"
 )
+
+// region Credits: github.com/gin-gonic/gin@v1.10.0/context.go:1097
+
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
+}
+
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
+}
+
+// endregion
 
 func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 	err := gocrud.New(group, db, gocrud.Crud[model.Song]{
@@ -209,13 +229,16 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		context.Data(http.StatusOK, "image/"+ext, cover)
 	})
 
-	// bitrate=0 return original file
+	// bitrate=0: return original file
+	// download=filename: add attachment header
 	group.GET("/file/:id", func(context *gin.Context) {
 		id := gocrud.Pick(gocrud.IDsFromCommaSeparatedString(context.Param("id")), 0, 0)
 		if id == 0 {
 			gocrud.MakeErrorResponse(context, gocrud.RestCoder.BadRequest(), "id not found")
 			return
 		}
+
+		download := context.Query("download")
 
 		var err error
 
@@ -240,11 +263,6 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 
 		filename := path.Join(env.StaticFolder, song.Filename)
 
-		if bitrate == 0 {
-			context.File(filename)
-			return
-		}
-
 		// iOS will treat this as streaming when converting to mp3 on the fly
 		//context.Header("Content-Type", "audio/mpeg")
 		//context.Writer.WriteHeaderNow()
@@ -256,14 +274,56 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 		//}
 		//context.Writer.Flush()
 
-		// FIXME should save this to a file for long-term use?
-		cache := bytes.NewBuffer(nil)
-		err = ffmpeg.Compress(filename, bitrate, cache)
-		if err != nil {
-			l.Error().Println(err)
+		var reader io.Reader
+		contentLength := int64(0)
+		contentType := ""
+
+		if bitrate <= 0 {
+			file, err := os.Open(filename)
+			if err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				return
+			}
+			defer func() {
+				_ = file.Close()
+			}()
+
+			stat, err := file.Stat()
+			if err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				return
+			} else if stat.IsDir() {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), "file is a directory")
+				return
+			}
+
+			reader = file
+			contentLength = stat.Size()
+			contentType = song.MIME
+		} else {
+			// FIXME should save this to a file for long-term use?
+			reader := bytes.NewBuffer(nil)
+			err = ffmpeg.Compress(filename, bitrate, reader)
+			if err != nil {
+				gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
+				return
+			}
+			contentLength = int64(reader.Len())
+			contentType = "audio/mpeg"
 		}
 
-		context.DataFromReader(http.StatusOK, int64(cache.Len()), "audio/mpeg", cache, nil)
+		extraHeaders := map[string]string{}
+
+		if download != "" {
+			contentType = "application/octet-stream"
+			if isASCII(download) {
+				extraHeaders["Content-Disposition"] = `attachment; filename="` + escapeQuotes(download) + `"`
+			} else {
+				extraHeaders["Content-Disposition"] = `attachment; filename*=UTF-8''` + strings.ReplaceAll(url.QueryEscape(download), "+", "%20")
+			}
+		}
+
+		context.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
 	})
 
 	// ?lyricsIds=1,2,3
