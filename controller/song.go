@@ -19,6 +19,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -40,6 +41,8 @@ func escapeQuotes(s string) string {
 }
 
 // endregion
+
+var compressLocker = &sync.Mutex{}
 
 func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 	err := gocrud.New(group, db, gocrud.Crud[model.Song]{
@@ -318,7 +321,11 @@ func SetupSongController(group *gin.RouterGroup, db *gorm.DB) error {
 			stat, err = os.Stat(compressedFilename)
 			if err != nil {
 				if errors.Is(err, os.ErrNotExist) {
-					err = ffmpeg.Compress(compressedFilename, filename, bitrate)
+					func() {
+						compressLocker.Lock()
+						defer compressLocker.Unlock()
+						err = ffmpeg.Compress(compressedFilename, filename, bitrate)
+					}()
 					if err != nil {
 						gocrud.MakeErrorResponse(context, gocrud.RestCoder.InternalServerError(), err)
 						return
