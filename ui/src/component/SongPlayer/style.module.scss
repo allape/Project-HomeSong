@@ -36,7 +36,8 @@
   }
 
   &.isMobile {
-    position: relative; // better scroll on mobile
+    // FIXME: will cause misbehave on the edge of changing screen size
+    //position: relative; // better scroll on mobile
   }
 
   &.collapsed {
