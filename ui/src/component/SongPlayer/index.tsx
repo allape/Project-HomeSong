@@ -156,15 +156,17 @@ export default function SongPlayer({
 
   useEffect(() => {
     // FIXME: use touch event to avoid iOS devices
-    if (!wrapper || document.ontouchstart === null) {
+    if (document.ontouchstart === null) {
       return;
     }
     if (layout === "fullscreen") {
-      wrapper.requestFullscreen().then();
+      document.body.requestFullscreen().then();
     } else {
-      document.exitFullscreen().then();
+      if (document.fullscreenElement) {
+        document.exitFullscreen().then();
+      }
     }
-  }, [layout, wrapper]);
+  }, [layout]);
 
   const scrollToCurrentSong = useCallback(() => {
     document
