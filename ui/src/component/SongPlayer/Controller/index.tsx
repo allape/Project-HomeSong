@@ -45,7 +45,7 @@ export default function Controller({
       >
         <StepBackwardOutlined />
       </Button>
-      {view == "list" && (
+      {view == "lyrics" && (
         <Button
           title={t("player.list")}
           type="link"
@@ -55,7 +55,7 @@ export default function Controller({
           <UnorderedListOutlined />
         </Button>
       )}
-      {view == "lyrics" && (
+      {view == "list" && (
         <Button
           title={t("player.lyrics")}
           type="link"
