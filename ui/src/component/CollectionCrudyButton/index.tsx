@@ -56,7 +56,7 @@ export default function CollectionCrudyButton(
         dataIndex: "id",
       },
       {
-        title: t("collection.index"),
+        title: <span className="nowrap">{t("collection.index")}</span>,
         dataIndex: "index",
       },
       {
@@ -126,7 +126,7 @@ export default function CollectionCrudyButton(
         ),
       },
       {
-        title: t("collection.description"),
+        title: <span className="nowrap">{t("collection.description")}</span>,
         dataIndex: "description",
         render: (v) => <Ellipsis>{v}</Ellipsis>,
       },

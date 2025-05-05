@@ -383,6 +383,7 @@ export default function Song(): ReactElement {
             size={size}
             title={t("download")}
             type="link"
+            data-url={record._url}
             href={record._download}
             download={record._name}
           >
@@ -540,7 +541,7 @@ export default function Song(): ReactElement {
 
   const handleRefineLyrics = useCallback(async () => {
     const data = await form?.validateFields();
-    if (!data || !data._lyricsIds?.length) {
+    if (!data) {
       return;
     }
 
@@ -552,13 +553,15 @@ export default function Song(): ReactElement {
         window.location.origin,
       )?.toString() || "",
     );
-    u.searchParams.set(
-      "text",
-      URL.parse(
-        `${config.SERVER_URL}/lyrics/text/${data._lyricsIds?.[0]}`,
-        window.location.origin,
-      )?.toString() || "",
-    );
+    if (data._lyricsIds?.length) {
+      u.searchParams.set(
+        "text",
+        URL.parse(
+          `${config.SERVER_URL}/lyrics/text/${data._lyricsIds?.[0]}`,
+          window.location.origin,
+        )?.toString() || "",
+      );
+    }
     u.hash = "#lyrics-timeline";
     window.open(u.toString());
   }, [form]);

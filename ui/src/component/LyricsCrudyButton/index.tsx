@@ -51,7 +51,7 @@ export default function LyricsCrudyButton(
         dataIndex: "id",
       },
       {
-        title: t("lyrics.index"),
+        title: <span className="nowrap">{t("lyrics.index")}</span>,
         dataIndex: "index",
       },
       {
@@ -76,7 +76,7 @@ export default function LyricsCrudyButton(
         render: (v) => <Ellipsis>{v}</Ellipsis>,
       },
       {
-        title: t("lyrics.description"),
+        title: <span className="nowrap">{t("lyrics.description")}</span>,
         dataIndex: "description",
         render: (v) => <Ellipsis>{v}</Ellipsis>,
       },
