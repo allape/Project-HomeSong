@@ -78,6 +78,7 @@ export default {
       loopType: {
         shuffle: "Shuffle",
         list: "List Loop",
+        singular: "Singular Loop",
         no: "No Loop",
       },
       bitRate: {

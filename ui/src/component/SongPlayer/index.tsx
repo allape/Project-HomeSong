@@ -62,11 +62,13 @@ export default function SongPlayer({
   song: songFromProps,
   onClose,
 }: ISongPlayerProps): ReactElement {
+  const singularLoopPlayNextTimer = useRef<number>(-1);
   const renderSongsTimerRef = useRef<number>(-1);
 
   useEffect(() => {
     return () => {
       clearTimeout(renderSongsTimerRef.current);
+      clearTimeout(singularLoopPlayNextTimer.current);
     };
   }, []);
 
@@ -257,6 +259,14 @@ export default function SongPlayer({
             return next;
           });
           return;
+        case "singular":
+          PEE.dispatchEvent("seekTo", 0);
+          clearTimeout(singularLoopPlayNextTimer.current);
+          singularLoopPlayNextTimer.current = setTimeout(
+            () => PEE.dispatchEvent("play"),
+            100,
+          ) as unknown as number;
+          return;
         case "no":
           return;
         case "list":
@@ -284,7 +294,7 @@ export default function SongPlayer({
         }
       }
     },
-    [loopRef, setSong, songRef, songsRef],
+    [PEE, loopRef, setSong, songRef, songsRef],
   );
 
   const handlePrev = useCallback(() => {

@@ -78,6 +78,7 @@ export default {
       loopType: {
         shuffle: "随机播放",
         list: "列表循环",
+        singular: "单曲循环",
         no: "单曲播放",
       },
       bitRate: {

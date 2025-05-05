@@ -10,11 +10,12 @@ import {
 import { Button } from "antd";
 import { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import IconLoopSingular from "../IconLoopSingular";
 import styles from "./style.module.scss";
 
 export type ViewType = "lyrics" | "list";
 
-export type LoopType = "shuffle" | "list" | "no";
+export type LoopType = "shuffle" | "list" | "singular" | "no";
 
 export interface IControllerProps {
   view?: ViewType;
@@ -83,9 +84,20 @@ export default function Controller({
           type="link"
           danger
           className={styles.button}
-          onClick={() => onLoopChange?.("no")}
+          onClick={() => onLoopChange?.("singular")}
         >
           <RetweetOutlined />
+        </Button>
+      )}
+      {loop === "singular" && (
+        <Button
+          title={t("player.loopType.singular")}
+          type="link"
+          danger
+          className={styles.button}
+          onClick={() => onLoopChange?.("no")}
+        >
+          <IconLoopSingular />
         </Button>
       )}
       {loop === "no" && (
