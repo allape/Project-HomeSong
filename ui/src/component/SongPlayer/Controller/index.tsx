@@ -50,7 +50,7 @@ export default function Controller({
           title={t("player.list")}
           type="link"
           className={styles.button}
-          onClick={() => onViewChange?.("lyrics")}
+          onClick={() => onViewChange?.("list")}
         >
           <UnorderedListOutlined />
         </Button>
@@ -61,7 +61,7 @@ export default function Controller({
           type="link"
           danger
           className={styles.button}
-          onClick={() => onViewChange?.("list")}
+          onClick={() => onViewChange?.("lyrics")}
         >
           <AudioOutlined />
         </Button>
