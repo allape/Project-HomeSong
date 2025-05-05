@@ -154,6 +154,18 @@ export default function SongPlayer({
     }
   }, [isMobile]);
 
+  useEffect(() => {
+    // FIXME: use touch event to avoid iOS devices
+    if (!wrapper || document.ontouchstart === null) {
+      return;
+    }
+    if (layout === "fullscreen") {
+      wrapper.requestFullscreen().then();
+    } else {
+      document.exitFullscreen().then();
+    }
+  }, [layout, wrapper]);
+
   const scrollToCurrentSong = useCallback(() => {
     document
       .querySelector(`[data-id=song-${songRef.current?.id}]`)
