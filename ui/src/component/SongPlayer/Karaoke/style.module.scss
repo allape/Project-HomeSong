@@ -50,7 +50,16 @@
 
       &.fullscreen {
         font-size: 4vw;
-        padding: 4vw 18vw;
+
+        // taller
+        @media (max-aspect-ratio: 1/1) {
+          padding: 2vw 18vw;
+        }
+
+        // wider
+        @media (min-aspect-ratio: 1/1) or (aspect-ratio: 1/1) {
+          padding: 4vw 18vw;
+        }
       }
 
       .mask {
