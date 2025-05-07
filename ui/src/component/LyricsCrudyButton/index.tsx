@@ -3,6 +3,7 @@ import {
   asDefaultPattern,
   CrudyButton,
   Ellipsis,
+  Flex,
   searchable,
   useMobile,
 } from "@allape/gocrud-react";
@@ -24,7 +25,6 @@ import { LyricsCrudy } from "../../api/lyrics.ts";
 import { LyricsCreatorDocURL } from "../../config/lyrics.ts";
 import { ILyrics, ILyricsSearchParams } from "../../model/lyrics.ts";
 import CopyButton from "../CopyButton";
-import SongNameInput from "../SongNameInput";
 
 type IRecord = ILyrics;
 type ISearchParams = ILyricsSearchParams;
@@ -95,7 +95,10 @@ export default function LyricsCrudyButton(
   );
 
   const handleParseStandardLRC = useCallback(() => {
-    const lrc = window.prompt(t("lyrics.fromStandardLRC"));
+    const lrc = window.prompt(
+      t("lyrics.fromStandardLRC"),
+      form?.getFieldValue("content") || "",
+    );
     if (!lrc?.trim()) {
       return;
     }
@@ -123,6 +126,10 @@ export default function LyricsCrudyButton(
     window.open(LyricsCreatorDocURL);
   }, []);
 
+  const handleCopyName = useCallback((): string => {
+    return form?.getFieldValue("name");
+  }, [form]);
+
   return (
     <CrudyButton
       name={t("lyrics._")}
@@ -147,10 +154,15 @@ export default function LyricsCrudyButton(
       </Form.Item>
       <Form.Item
         name="name"
-        label={t("lyrics.name")}
+        label={
+          <Flex justifyContent="flex-start">
+            {t("lyrics.name")}
+            <CopyButton value={handleCopyName} />
+          </Flex>
+        }
         rules={[{ required: true }]}
       >
-        <SongNameInput maxLength={200} placeholder={t("lyrics.name")} />
+        <Input maxLength={200} placeholder={t("lyrics.name")} />
       </Form.Item>
 
       <Form.Item
