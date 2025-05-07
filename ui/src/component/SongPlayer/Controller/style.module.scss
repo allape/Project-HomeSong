@@ -2,13 +2,14 @@
 
 .wrapper {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: stretch;
   align-items: center;
   flex-wrap: nowrap;
 
   .button {
     transition: 0.25s;
     padding: 25px 20px 20px;
+    flex: 1;
 
     &:hover {
       scale: 1.05;
