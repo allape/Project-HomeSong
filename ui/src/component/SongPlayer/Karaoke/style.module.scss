@@ -60,6 +60,14 @@
         @media (min-aspect-ratio: 1/1) or (aspect-ratio: 1/1) {
           padding: 4vw 18vw;
         }
+
+        .hasLeadingSpace {
+          margin-left: 1vw !important;
+        }
+
+        .hasTrailingSpace {
+          margin-right: 1vw !important;
+        }
       }
 
       .mask {

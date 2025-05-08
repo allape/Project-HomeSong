@@ -115,6 +115,8 @@ export default function Karaoke({
       wrapper: styles.karaoke,
       line: cls(styles.line, fullscreen && styles.fullscreen),
       mask: styles.mask,
+      hasLeadingSpace: styles.hasLeadingSpace,
+      hasTrailingSpace: styles.hasTrailingSpace,
     }),
     [fullscreen],
   );
