@@ -33,6 +33,16 @@
     & > :global(.ant-card-body) {
       height: calc(100dvh - 56px) !important;
     }
+
+    .container {
+      .player {
+        .header.karaoke {
+          @media (pointer: fine) {
+            opacity: 0;
+          }
+        }
+      }
+    }
   }
 
   &.isMobile {
@@ -175,10 +185,10 @@
 
         &.karaoke {
           background: transparent;
-          opacity: 0.1;
           padding-top: 0;
+          opacity: 0.3;
 
-          &:hover {
+          &:hover, &.justScrolled {
             opacity: 1;
           }
 

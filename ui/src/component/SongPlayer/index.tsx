@@ -62,13 +62,15 @@ export default function SongPlayer({
   song: songFromProps,
   onClose,
 }: ISongPlayerProps): ReactElement {
-  const singularLoopPlayNextTimer = useRef<number>(-1);
   const renderSongsTimerRef = useRef<number>(-1);
+  const singularLoopPlayNextTimerRef = useRef<number>(-1);
+  const justScrolledTimerRef = useRef<number>(-1);
 
   useEffect(() => {
     return () => {
       clearTimeout(renderSongsTimerRef.current);
-      clearTimeout(singularLoopPlayNextTimer.current);
+      clearTimeout(singularLoopPlayNextTimerRef.current);
+      clearTimeout(justScrolledTimerRef.current);
     };
   }, []);
 
@@ -106,6 +108,7 @@ export default function SongPlayer({
   const [keyword, keywordRef, setKeyword] = useProxy<string>("");
   const [songs, songsRef, setSongs] = useProxy<IModifiedSong[]>([]);
   const [renderingSongs, setRenderingSongs] = useState<IModifiedSong[]>([]);
+  const [justScrolled, setJustScrolled] = useState<boolean>(false);
 
   const history = useRef<IModifiedSong[]>([]);
 
@@ -261,8 +264,8 @@ export default function SongPlayer({
           return;
         case "singular":
           PEE.dispatchEvent("seekTo", 0);
-          clearTimeout(singularLoopPlayNextTimer.current);
-          singularLoopPlayNextTimer.current = setTimeout(
+          clearTimeout(singularLoopPlayNextTimerRef.current);
+          singularLoopPlayNextTimerRef.current = setTimeout(
             () => PEE.dispatchEvent("play"),
             100,
           ) as unknown as number;
@@ -395,6 +398,14 @@ export default function SongPlayer({
     };
   }, [PEE, handleNext, handlePrev, layout, playingRef, wrapper]);
 
+  const handleJustScrolled = useCallback(() => {
+    setJustScrolled(true);
+    clearTimeout(justScrolledTimerRef.current);
+    justScrolledTimerRef.current = setTimeout(() => {
+      setJustScrolled(false);
+    }, 3000) as unknown as number;
+  }, []);
+
   const isKaraokeMode = view === "lyrics";
 
   return (
@@ -488,9 +499,15 @@ export default function SongPlayer({
           backgroundImage: song?._cover ? `url(${song?._cover})` : undefined,
         }}
       ></div>
-      <div className={styles.container}>
+      <div className={styles.container} onWheelCapture={handleJustScrolled}>
         <div className={styles.player}>
-          <div className={cls(styles.header, isKaraokeMode && styles.karaoke)}>
+          <div
+            className={cls(
+              styles.header,
+              isKaraokeMode && styles.karaoke,
+              justScrolled && styles.justScrolled,
+            )}
+          >
             <div className={styles.form}>
               <div className={styles.row}>
                 <div className={styles.collectionSelector}>
