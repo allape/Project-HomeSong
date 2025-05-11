@@ -4,6 +4,7 @@ import {
   config,
   CrudyTable,
   Ellipsis,
+  EventEmitter,
   Flex,
   ICrudyTableProps,
   searchable,
@@ -65,7 +66,9 @@ import CollectionSelector, {
 } from "../../component/CollectionSelector";
 import CopyButton from "../../component/CopyButton";
 import LyricsCrudyButton from "../../component/LyricsCrudyButton";
-import LyricsSelector from "../../component/LyricsSelector";
+import LyricsSelector, {
+  ILyricsSelectorProps,
+} from "../../component/LyricsSelector";
 import SongPlayer from "../../component/SongPlayer";
 import WordInput from "../../component/WordInput";
 import { LyricsCreatorURL } from "../../config/lyrics.ts";
@@ -108,6 +111,11 @@ export default function Song(): ReactElement {
   );
   const LyricsCrudyEmitter = useMemo(
     () => NewCrudyButtonEventEmitter<ILyrics>(),
+    [],
+  );
+  const LyricsSelectorEmitter = useMemo(
+    () =>
+      new EventEmitter() as Exclude<ILyricsSelectorProps["emitter"], undefined>,
     [],
   );
 
@@ -496,6 +504,22 @@ export default function Song(): ReactElement {
     });
   }, [LyricsCrudyEmitter, form]);
 
+  const handleEditLyrics = useCallback(
+    (record: ILyrics) => {
+      LyricsCrudyEmitter.dispatchEvent("open-save-form", record);
+      LyricsCrudyEmitter.addEventListener(
+        "save-form-closed",
+        () => {
+          LyricsSelectorEmitter.dispatchEvent("changed", undefined);
+        },
+        {
+          once: true,
+        },
+      );
+    },
+    [LyricsCrudyEmitter, LyricsSelectorEmitter],
+  );
+
   const lastSearchedKeywordsRef = useRef<string>("");
 
   const handleKeywordsSearch = useCallback(() => {
@@ -794,7 +818,11 @@ export default function Song(): ReactElement {
                 </Flex>
               }
             >
-              <LyricsSelector mode="multiple" />
+              <LyricsSelector
+                mode="multiple"
+                onLyricsClick={handleEditLyrics}
+                emitter={LyricsSelectorEmitter}
+              />
             </Form.Item>
 
             <Form.Item name="description" label={t("song.description")}>
