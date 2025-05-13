@@ -95,10 +95,9 @@ export default function LyricsCrudyButton(
   );
 
   const handleParseStandardLRC = useCallback(() => {
-    const lrc = window.prompt(
-      t("lyrics.fromStandardLRC"),
-      form?.getFieldValue("content") || "",
-    );
+    const lrc: string =
+      window.prompt(t("lyrics.fromStandardLRC")) ||
+      form?.getFieldValue("content");
     if (!lrc?.trim()) {
       return;
     }
