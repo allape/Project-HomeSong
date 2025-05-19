@@ -15,6 +15,8 @@ export default {
     copied: "Copied",
     created: "Created",
     createArtistsFast: "Create Artists",
+    createArtistsFastTips:
+      "Create artists, split by comma or slash, e.g. 'Artist1, Artist2/Artist3'",
     required: "{{name}} is required",
     songSearch: 'Search in "Collection Name - Song Name"',
     refineLyrics: "Refine Lyrics",

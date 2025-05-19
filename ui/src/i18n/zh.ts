@@ -14,7 +14,9 @@ export default {
     keepCover: "保留封面",
     copied: "已复制",
     created: "已创建",
-    createArtistsFast: "快速创建艺术家",
+    createArtistsFast: "快速创建",
+    createArtistsFastTips:
+      "快速创建艺术家, 用逗号或斜杠分隔, 例如：'艺术家1，艺术家2/艺术家3'",
     required: "{{name}} 是必填项",
     songSearch: "搜索歌曲, 如：歌手 - 歌名",
     refineLyrics: "优化歌词",

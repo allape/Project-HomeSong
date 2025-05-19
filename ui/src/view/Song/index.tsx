@@ -404,8 +404,11 @@ export default function Song(): ReactElement {
   );
 
   const handleCreateArtist = useCallback(
-    async (preset?: string) => {
-      const res = preset || window.prompt(t("song.artistName"));
+    async (
+      preset: string = "",
+      targetField: keyof ISongWithCollections = "_singerIds",
+    ) => {
+      const res = preset || window.prompt(t("createArtistsFastTips"));
       if (!res) {
         return;
       }
@@ -413,7 +416,7 @@ export default function Song(): ReactElement {
       const names = Array.from(
         new Set(
           res
-            .split(/[,，]/gi)
+            .split(/[,，/]/gi)
             .map((i) => i.trim())
             .filter((i) => !!i),
         ),
@@ -423,9 +426,9 @@ export default function Song(): ReactElement {
 
       message.success(t("created"));
 
-      const existingCollections = form?.getFieldValue("_singerIds") || [];
+      const existingCollections = form?.getFieldValue(targetField) || [];
       form?.setFieldValue(
-        "_singerIds",
+        targetField,
         Array.from(
           new Set([...artists.map((a) => a.id), ...existingCollections]),
         ),
@@ -732,37 +735,97 @@ export default function Song(): ReactElement {
                 <Flex>
                   {t("collection.artistTypes.singer")}
                   <Divider type="vertical" />
-                  <Button type="primary" onClick={() => handleCreateArtist()}>
+                  <Button type="link" onClick={() => handleCreateArtist()}>
                     {t("createArtistsFast")}
                   </Button>
                 </Flex>
               }
             >
-              <ArtistSelector mode="multiple" onLoaded={handleSingersLoaded} />
+              <ArtistSelector
+                mode="multiple"
+                onLoaded={handleSingersLoaded}
+                placeholder={t("collection.artistTypes.singer")}
+              />
             </Form.Item>
             <Form.Item
               name="_lyricistIds"
-              label={t("collection.artistTypes.lyricist")}
+              label={
+                <Flex>
+                  {t("collection.artistTypes.lyricist")}
+                  <Divider type="vertical" />
+                  <Button
+                    type="link"
+                    onClick={() => handleCreateArtist("", "_lyricistIds")}
+                  >
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
             >
-              <ArtistSelector mode="multiple" />
+              <ArtistSelector
+                mode="multiple"
+                placeholder={t("collection.artistTypes.lyricist")}
+              />
             </Form.Item>
             <Form.Item
               name="_composerIds"
-              label={t("collection.artistTypes.composer")}
+              label={
+                <Flex>
+                  {t("collection.artistTypes.composer")}
+                  <Divider type="vertical" />
+                  <Button
+                    type="link"
+                    onClick={() => handleCreateArtist("", "_composerIds")}
+                  >
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
             >
-              <ArtistSelector mode="multiple" />
+              <ArtistSelector
+                mode="multiple"
+                placeholder={t("collection.artistTypes.composer")}
+              />
             </Form.Item>
             <Form.Item
               name="_arrangerIds"
-              label={t("collection.artistTypes.arranger")}
+              label={
+                <Flex>
+                  {t("collection.artistTypes.arranger")}
+                  <Divider type="vertical" />
+                  <Button
+                    type="link"
+                    onClick={() => handleCreateArtist("", "_arrangerIds")}
+                  >
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
             >
-              <ArtistSelector mode="multiple" />
+              <ArtistSelector
+                mode="multiple"
+                placeholder={t("collection.artistTypes.arranger")}
+              />
             </Form.Item>
             <Form.Item
               name="_otherIds"
-              label={t("collection.artistTypes.other")}
+              label={
+                <Flex>
+                  {t("collection.artistTypes.other")}
+                  <Divider type="vertical" />
+                  <Button
+                    type="link"
+                    onClick={() => handleCreateArtist("", "_otherIds")}
+                  >
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
             >
-              <ArtistSelector mode="multiple" />
+              <ArtistSelector
+                mode="multiple"
+                placeholder={t("collection.artistTypes.other")}
+              />
             </Form.Item>
 
             <Form.Item
