@@ -157,7 +157,7 @@ export default function CollectionCrudyButton(
       {...props}
     >
       <Form.Item name="cover" label={t("collection.cover")}>
-        <Uploader serverURL={config.SERVER_STATIC_URL} />
+        <Uploader serverURL={config.SERVER_STATIC_URL} accept="image/*" />
       </Form.Item>
       <Form.Item name="index" label={t("collection.index")}>
         <InputNumber

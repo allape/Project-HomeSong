@@ -11,6 +11,7 @@ import { ICrudyButtonProps } from "@allape/gocrud-react/src/component/CrudyButto
 import { LyricsDriver } from "@allape/lyrics";
 import { CopyOutlined } from "@ant-design/icons";
 import {
+  App,
   Button,
   Divider,
   Form,
@@ -35,6 +36,7 @@ export default function LyricsCrudyButton(
   props: ILyricsCrudyButtonProps,
 ): ReactElement {
   const { t } = useTranslation();
+  const { message } = App.useApp();
 
   const isMobile = useMobile();
 
@@ -110,15 +112,22 @@ export default function LyricsCrudyButton(
       e.preventDefault();
       e.stopPropagation();
 
-      const files = e.dataTransfer?.files;
-      const text = await files?.[0]?.text();
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) {
+        return;
+      } else if (file.size > 1024 * 1024) {
+        message.warning(t("lyrics.fileIsTooLarge"));
+        return;
+      }
+
+      const text = await file.text();
       if (!text) {
         return;
       }
 
       form?.setFieldValue("content", text);
     },
-    [form],
+    [form, message, t],
   );
 
   const handleOpenLRCPReadme = useCallback(() => {
