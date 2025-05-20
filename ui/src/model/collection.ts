@@ -58,7 +58,14 @@ export const ArtistCollectionTypes: CollectionType[] = ["artist"];
 
 export const NonArtistCollectionTypes: CollectionType[] = ["album", "playlist"];
 
-export type Role = "singer" | "lyricist" | "composer" | "arranger" | "other" | "_";
+export type Role =
+  | "singer"
+  | "lyricist"
+  | "composer"
+  | "arranger"
+  | "producer"
+  | "other"
+  | "_";
 
 export interface ICollectionSong extends Pick<IBase, "createdAt"> {
   songId: ISong["id"];

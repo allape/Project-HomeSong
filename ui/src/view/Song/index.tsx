@@ -299,6 +299,11 @@ export default function Song(): ReactElement {
       "arranger",
       record._arrangerIds || [],
     );
+    await saveCollectionSongsBySong(
+      song.id,
+      "producer",
+      record._producerIds || [],
+    );
     await saveCollectionSongsBySong(song.id, "other", record._otherIds || []);
 
     await saveLyricsBySong(song.id, record._lyricsIds || []);
@@ -805,6 +810,26 @@ export default function Song(): ReactElement {
               <ArtistSelector
                 mode="multiple"
                 placeholder={t("collection.artistTypes.arranger")}
+              />
+            </Form.Item>
+            <Form.Item
+              name="_producerIds"
+              label={
+                <Flex>
+                  {t("collection.artistTypes.producer")}
+                  <Divider type="vertical" />
+                  <Button
+                    type="link"
+                    onClick={() => handleCreateArtist("", "_producerIds")}
+                  >
+                    {t("createArtistsFast")}
+                  </Button>
+                </Flex>
+              }
+            >
+              <ArtistSelector
+                mode="multiple"
+                placeholder={t("collection.artistTypes.producer")}
               />
             </Form.Item>
             <Form.Item

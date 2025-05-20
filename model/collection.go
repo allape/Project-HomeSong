@@ -20,6 +20,7 @@ const (
 	Lyricist Role = "lyricist"
 	Composer Role = "composer"
 	Arranger Role = "arranger"
+	Producer Role = "producer"
 	Other    Role = "other"
 	Reserved Role = "_"
 )
@@ -29,6 +30,7 @@ var Roles = []Role{
 	Lyricist,
 	Composer,
 	Arranger,
+	Producer,
 	Other,
 	Reserved,
 }

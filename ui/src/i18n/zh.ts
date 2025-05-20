@@ -46,10 +46,11 @@ export default {
         playlist: "歌单",
       },
       artistTypes: {
-        singer: "演唱",
+        singer: "演唱/演奏",
         lyricist: "作词",
         composer: "作曲",
         arranger: "编曲",
+        producer: "制作人",
         other: "其他",
       },
     },

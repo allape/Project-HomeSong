@@ -32,6 +32,8 @@ export interface ISongWithCollections extends ISong {
   _composerIds?: ICollection["id"][];
   _arrangerNames?: string;
   _arrangerIds?: ICollection["id"][];
+  _producerNames?: string;
+  _producerIds?: ICollection["id"][];
   _otherNames?: string;
   _otherIds?: ICollection["id"][];
   _nonSingerNames?: string;
@@ -43,6 +45,7 @@ export interface ISongWithCollections extends ISong {
 
 export async function fillSongsWithCollections(
   songs: ISong[],
+  artistSep: string = " & ",
 ): Promise<ISongWithCollections[]> {
   if (songs.length === 0) {
     return [];
@@ -73,29 +76,40 @@ export async function fillSongsWithCollections(
     const currentCss = collectionSongs.filter((cs) => cs.songId === s.id);
     const currentCsIds = currentCss.map((cs) => cs.collectionId);
 
-    const singerIds = currentCss
-      .filter((cs) => cs.role === "singer")
-      .map((cs) => cs.collectionId);
+    const singerIds: ICollection["id"][] = [];
+    const lyricistIds: ICollection["id"][] = [];
+    const composerIds: ICollection["id"][] = [];
+    const arrangerIds: ICollection["id"][] = [];
+    const producerIds: ICollection["id"][] = [];
+    const otherIds: ICollection["id"][] = [];
+    const nonArtistIds: ICollection["id"][] = [];
 
-    const lyricistIds = currentCss
-      .filter((cs) => cs.role === "lyricist")
-      .map((cs) => cs.collectionId);
-
-    const composerIds = currentCss
-      .filter((cs) => cs.role === "composer")
-      .map((cs) => cs.collectionId);
-
-    const arrangerIds = currentCss
-      .filter((cs) => cs.role === "arranger")
-      .map((cs) => cs.collectionId);
-
-    const otherIds = currentCss
-      .filter((cs) => cs.role === "other")
-      .map((cs) => cs.collectionId);
-
-    const nonArtistIds = currentCss
-      .filter((cs) => cs.role === "_")
-      .map((cs) => cs.collectionId);
+    currentCss.forEach((cs) => {
+      switch (cs.role) {
+        case "singer":
+          singerIds.push(cs.collectionId);
+          break;
+        case "lyricist":
+          lyricistIds.push(cs.collectionId);
+          break;
+        case "composer":
+          composerIds.push(cs.collectionId);
+          break;
+        case "arranger":
+          arrangerIds.push(cs.collectionId);
+          break;
+        case "producer":
+          producerIds.push(cs.collectionId);
+          break;
+        case "other":
+          otherIds.push(cs.collectionId);
+          break;
+        case "_":
+        default:
+          nonArtistIds.push(cs.collectionId);
+          break;
+      }
+    });
 
     const nonSingerIds = currentCss
       .filter(
@@ -106,55 +120,78 @@ export async function fillSongsWithCollections(
       )
       .map((cs) => cs.collectionId);
 
-    const cs = collections.filter((c) => currentCsIds.includes(c.id));
+    const singerNames: ICollection["name"][] = [];
+    const lyricistNames: ICollection["name"][] = [];
+    const composerNames: ICollection["name"][] = [];
+    const arrangerNames: ICollection["name"][] = [];
+    const producerNames: ICollection["name"][] = [];
+    const otherNames: ICollection["name"][] = [];
 
-    const nonArtistNames = collections
-      .filter((c) => nonArtistIds.includes(c.id))
-      .map((c) => c.name);
+    const nonSingerNames: ICollection["name"][] = [];
+    const nonArtistNames: ICollection["name"][] = [];
+
+    const cs: ICollection[] = [];
+
+    collections.forEach((c) => {
+      if (currentCsIds.includes(c.id)) {
+        cs.push(c);
+      }
+
+      if (nonSingerIds.includes(c.id)) {
+        nonSingerNames.push(c.name);
+      }
+      if (nonArtistIds.includes(c.id)) {
+        nonArtistNames.push(c.name);
+      }
+
+      if (singerIds.includes(c.id)) {
+        singerNames.push(c.name);
+      }
+      if (lyricistIds.includes(c.id)) {
+        lyricistNames.push(c.name);
+      }
+      if (composerIds.includes(c.id)) {
+        composerNames.push(c.name);
+      }
+      if (arrangerIds.includes(c.id)) {
+        arrangerNames.push(c.name);
+      }
+      if (producerIds.includes(c.id)) {
+        producerNames.push(c.name);
+      }
+      if (otherIds.includes(c.id)) {
+        otherNames.push(c.name);
+      }
+    });
 
     return {
       ...s,
       _collections: cs,
 
-      _singerNames: collections
-        .filter((c) => singerIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _singerNames: singerNames.join(artistSep),
       _singerIds: singerIds,
 
-      _lyricistNames: collections
-        .filter((c) => lyricistIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _lyricistNames: lyricistNames.join(artistSep),
       _lyricistIds: lyricistIds,
 
-      _composerNames: collections
-        .filter((c) => composerIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _composerNames: composerNames.join(artistSep),
       _composerIds: composerIds,
 
-      _arrangerNames: collections
-        .filter((c) => arrangerIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _arrangerNames: arrangerNames.join(artistSep),
       _arrangerIds: arrangerIds,
 
-      _otherNames: collections
-        .filter((c) => otherIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _producerNames: producerNames.join(artistSep),
+      _producerIds: producerIds,
+
+      _otherNames: otherNames.join(artistSep),
       _otherIds: otherIds,
 
-      _nonSingerNames: collections
-        .filter((c) => nonSingerIds.includes(c.id))
-        .map((c) => c.name)
-        .join(" & "),
+      _nonSingerNames: nonSingerNames.join(artistSep),
       _nonSingerIds: nonSingerIds,
 
-      _nonArtistNames: nonArtistNames.join(", "),
-      _nonArtistNameArr: nonArtistNames,
       _nonArtistIds: nonArtistIds,
+      _nonArtistNameArr: nonArtistNames,
+      _nonArtistNames: nonArtistNames.join(", "),
     };
   });
 }
